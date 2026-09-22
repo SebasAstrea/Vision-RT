@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/settings_title"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_title" />
+
+        <TextView
+            android:id="@+id/verbosity_title"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_verbosity_title" />
+
+        <RadioGroup
+            android:id="@+id/verbosity_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/verbosity_minimal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="56dp"
+                android:text="@string/settings_verbosity_minimal" />
+
+            <RadioButton
+                android:id="@+id/verbosity_normal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="56dp"
+                android:text="@string/settings_verbosity_normal" />
+
+            <RadioButton
+                android:id="@+id/verbosity_detailed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="56dp"
+                android:text="@string/settings_verbosity_detailed" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/section_replay"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_replay_training" />
+
+        <TextView
+            android:id="@+id/replay_desc"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_replay_training_desc" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/replay_training_button"
+            style="@style/VisionRT.Button.Large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_replay_training" />
+    </LinearLayout>
+</ScrollView>

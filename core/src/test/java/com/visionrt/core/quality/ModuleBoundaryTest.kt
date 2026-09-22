@@ -26,7 +26,7 @@ class ModuleBoundaryTest {
 
     private val allowlist: Map<String, Set<String>> = mapOf(
         "core" to emptySet(),
-        "feature" to setOf("core"),
+        "feature" to setOf("core", "data"),
         "perception" to setOf("core"),
         "inference" to setOf("core", "perception"),
         "feedback" to setOf("core"),

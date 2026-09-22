@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/onboarding_scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/step_heading"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/training_step_heading"
+            tools:ignore="UnusedAttribute" />
+
+        <LinearLayout
+            android:id="@+id/training_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/onboarding_title"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/onboarding_title" />
+
+            <TextView
+                android:id="@+id/onboarding_subtitle"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/onboarding_subtitle" />
+
+            <TextView
+                android:id="@+id/section_modes"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/onboarding_section_modes" />
+
+            <TextView
+                android:id="@+id/body_modes"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_body_modes" />
+
+            <TextView
+                android:id="@+id/section_alerts"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/onboarding_section_alerts" />
+
+            <TextView
+                android:id="@+id/body_alerts"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_body_alerts" />
+
+            <TextView
+                android:id="@+id/section_controls"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/onboarding_section_controls" />
+
+            <TextView
+                android:id="@+id/body_controls"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_body_controls" />
+
+            <TextView
+                android:id="@+id/section_limitations"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/onboarding_section_limitations" />
+
+            <TextView
+                android:id="@+id/body_limitations"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_body_limitations" />
+
+            <TextView
+                android:id="@+id/section_practice"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/onboarding_section_practice" />
+
+            <TextView
+                android:id="@+id/body_practice"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_body_practice" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/practice_button"
+                style="@style/VisionRT.Button.Large"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/onboarding_practice_button" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/skip_button"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/common_skip" />
+
+                <Space
+                    android:layout_width="16dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="0" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/continue_button"
+                    style="@style/VisionRT.Button.Large"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/common_continue" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/disclaimer_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="gone">
+
+            <TextView
+                android:id="@+id/disclaimer_title"
+                style="@style/VisionRT.TextView.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/disclaimer_title" />
+
+            <TextView
+                android:id="@+id/disclaimer_body"
+                style="@style/VisionRT.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/disclaimer_body" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ack_button"
+                style="@style/VisionRT.Button.Large"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/disclaimer_ack" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/back_to_training_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:text="@string/common_back" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

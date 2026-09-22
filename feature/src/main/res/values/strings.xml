@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="common_skip">Skip</string>
+    <string name="common_back">Back</string>
+    <string name="common_continue">Continue</string>
+
+    <!-- Modes (FR-003) -->
+    <string name="mode_obstacle">Obstacle Awareness Mode</string>
+    <string name="mode_object_summary">On-Demand Object Summary</string>
+    <string name="mode_text_reading">Text Reading Mode</string>
+    <string name="mode_settings">Settings</string>
+    <string name="mode_help">Help</string>
+    <string name="mode_placeholder">Not available yet. This mode will be available in a later version.</string>
+
+    <!-- Onboarding (FR-002) -->
+    <string name="onboarding_title">Welcome to Vision-RT</string>
+    <string name="onboarding_subtitle">Vision-RT is a complement to the white cane, guide dog, human guide, and orientation and mobility training. It does not replace them.</string>
+    <string name="onboarding_section_modes">The main modes</string>
+    <string name="onboarding_body_modes">Obstacle awareness, on-demand object summary, and text reading. All modes are optional and you control when they run.</string>
+    <string name="onboarding_section_alerts">How alerts work</string>
+    <string name="onboarding_body_alerts">You receive short spoken messages and vibration. The app may miss obstacles or give incomplete information. It never guarantees a safe path.</string>
+    <string name="onboarding_section_controls">Start, pause and stop</string>
+    <string name="onboarding_body_controls">You can start and stop assistance from the main screen at any time. A control to silence speech is always available.</string>
+    <string name="onboarding_section_limitations">Known limitations</string>
+    <string name="onboarding_body_limitations">It may have difficulty with glass, low light, reflective surfaces, small or partially hidden obstacles, fast-moving objects, overhead obstacles outside the camera view, and wet or irregular ground.</string>
+    <string name="onboarding_section_practice">Practice</string>
+    <string name="onboarding_body_practice">Before using Vision-RT while walking, try a sample alert.</string>
+    <string name="onboarding_practice_button">Hear a sample alert</string>
+    <string name="onboarding_sample_alert">Possible obstacle ahead.</string>
+    <string name="onboarding_practice_done">Sample heard. Well done.</string>
+
+    <!-- Safety disclaimer (FR-001, SAF-001, SAF-004) -->
+    <string name="disclaimer_title">Important safety notice</string>
+    <string name="disclaimer_body">This application is a complement and not a replacement for a white cane, guide dog, human guide, or mobility training.\n\nThe application may miss obstacles, misidentify objects, or provide incomplete information. It does not detect everything and it cannot prevent all accidents.\n\nDo not rely on it alone in high-risk environments. Practice in safe environments first, and consult an orientation and mobility professional when appropriate.</string>
+    <string name="disclaimer_ack">I understand and want to continue</string>
+    <string name="disclaimer_ack_announce">Safety notice acknowledged. Going to the main screen.</string>
+    <string name="disclaimer_step_heading">Safety notice, step 2 of 2</string>
+    <string name="training_step_heading">Training, step 1 of 2</string>
+
+    <!-- Home (FR-004) -->
+    <string name="home_title">Vision-RT home</string>
+    <string name="home_status_idle">Assistance inactive.</string>
+    <string name="home_status_active">Obstacle mode active.</string>
+    <string name="home_start">Start assistance</string>
+    <string name="home_stop">Stop assistance</string>
+    <string name="home_started_announce">Assistance started.</string>
+    <string name="home_stopped_announce">Assistance stopped.</string>
+    <string name="home_silence_on">Silence speech</string>
+    <string name="home_silence_off">Unmute speech</string>
+    <string name="home_silenced_announce">Speech silenced.</string>
+    <string name="home_unsilenced_announce">Speech unmuted.</string>
+    <string name="home_go_settings">Settings</string>
+    <string name="home_go_help">Help</string>
+
+    <!-- Settings (FR-012) -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_verbosity_title">Alert detail level</string>
+    <string name="settings_verbosity_minimal">Minimal</string>
+    <string name="settings_verbosity_normal">Normal</string>
+    <string name="settings_verbosity_detailed">Detailed</string>
+    <string name="settings_verbosity_announce">Alert detail level: %1$s.</string>
+    <string name="settings_replay_training">Review the training</string>
+    <string name="settings_replay_training_desc">Open the introductory screens again at any time.</string>
+
+    <!-- Help (SAF-003, SAF-005) -->
+    <string name="help_title">Help and limitations</string>
+    <string name="help_body">Vision-RT is a complement to existing mobility methods. It does not replace a white cane, guide dog, human guide, or orientation and mobility training.\n\nKnown limitations: transparent surfaces such as glass, low light, highly reflective surfaces, small or partially hidden obstacles, fast-moving objects, overhead obstacles outside camera view, and wet or irregular ground surfaces.\n\nThe app cannot detect everything and cannot prevent all accidents. Do not rely on it alone in high-risk environments. Practice in safe environments first, and consult an orientation and mobility professional when appropriate.</string>
+    <string name="help_back">Back to home</string>
+</resources>

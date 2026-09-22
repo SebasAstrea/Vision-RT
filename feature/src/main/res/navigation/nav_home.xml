@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_home"
+    app:startDestination="@id/dest_onboarding">
+
+    <fragment
+        android:id="@+id/dest_onboarding"
+        android:name="com.visionrt.feature.onboarding.OnboardingFragment">
+        <argument
+            android:name="replay"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <action
+            android:id="@+id/action_onboarding_to_home"
+            app:destination="@id/dest_home"
+            app:popUpTo="@id/dest_onboarding"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dest_home"
+        android:name="com.visionrt.feature.home.HomeFragment">
+        <action
+            android:id="@+id/action_home_to_settings"
+            app:destination="@id/dest_settings" />
+        <action
+            android:id="@+id/action_home_to_help"
+            app:destination="@id/dest_help" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dest_settings"
+        android:name="com.visionrt.feature.settings.SettingsFragment">
+        <action
+            android:id="@+id/action_settings_to_onboarding"
+            app:destination="@id/dest_onboarding">
+            <argument
+                android:name="replay"
+                app:argType="boolean"
+                android:defaultValue="true" />
+        </action>
+        <action
+            android:id="@+id/action_settings_to_home"
+            app:destination="@id/dest_home"
+            app:popUpTo="@id/dest_home"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dest_help"
+        android:name="com.visionrt.feature.help.HelpFragment">
+        <action
+            android:id="@+id/action_help_to_home"
+            app:destination="@id/dest_home"
+            app:popUpTo="@id/dest_home"
+            app:popUpToInclusive="false" />
+    </fragment>
+</navigation>

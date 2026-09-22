@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="common_skip">Omitir</string>
+    <string name="common_back">Atrás</string>
+    <string name="common_continue">Continuar</string>
+
+    <!-- Modes (FR-003) -->
+    <string name="mode_obstacle">Modo Conciencia de Obstáculos</string>
+    <string name="mode_object_summary">Resumen de Objetos Bajo Demanda</string>
+    <string name="mode_text_reading">Modo Lectura de Texto</string>
+    <string name="mode_settings">Ajustes</string>
+    <string name="mode_help">Ayuda</string>
+    <string name="mode_placeholder">No disponible todavía. Este modo estará disponible en una versión futura.</string>
+
+    <!-- Onboarding (FR-002) -->
+    <string name="onboarding_title">Bienvenido a Vision-RT</string>
+    <string name="onboarding_subtitle">Vision-RT es un complemento del bastón blanco, el perro guía, la guía humana y la formación en orientación y movilidad. No los sustituye.</string>
+    <string name="onboarding_section_modes">Los modos principales</string>
+    <string name="onboarding_body_modes">Conciencia de obstáculos, resumen de objetos bajo demanda y lectura de texto. Todos los modos son opcionales y tú controlas cuándo se ejecutan.</string>
+    <string name="onboarding_section_alerts">Cómo funcionan las alertas</string>
+    <string name="onboarding_body_alerts">Recibirás mensajes hablados cortos y vibración. La app puede no detectar obstáculos o dar información incompleta. Nunca garantiza un camino seguro.</string>
+    <string name="onboarding_section_controls">Iniciar, pausar y detener</string>
+    <string name="onboarding_body_controls">Puedes iniciar y detener la asistencia desde la pantalla principal en cualquier momento. Siempre hay un control para silenciar el habla.</string>
+    <string name="onboarding_section_limitations">Limitaciones conocidas</string>
+    <string name="onboarding_body_limitations">Puede tener dificultades con el vidrio, la poca luz, superficies muy reflectantes, obstáculos pequeños u ocultos en parte, objetos en movimiento rápido, obstáculos por encima fuera de la cámara y suelos mojados o irregulares.</string>
+    <string name="onboarding_section_practice">Práctica</string>
+    <string name="onboarding_body_practice">Antes de usar Vision-RT mientras caminas, prueba una alerta de ejemplo.</string>
+    <string name="onboarding_practice_button">Escuchar una alerta de ejemplo</string>
+    <string name="onboarding_sample_alert">Posible obstáculo delante.</string>
+    <string name="onboarding_practice_done">Aviso de ejemplo escuchado. Buen trabajo.</string>
+
+    <!-- Safety disclaimer (FR-001, SAF-001, SAF-004) -->
+    <string name="disclaimer_title">Aviso de seguridad importante</string>
+    <string name="disclaimer_body">Esta aplicación es un complemento y no un reemplazo del bastón blanco, el perro guía, la guía humana ni la formación en movilidad.\n\nLa aplicación puede pasar por alto obstáculos, identificar mal objetos o dar información incompleta. No lo detecta todo y no puede evitar todos los accidentes.\n\nNo confíes solo en ella en entornos de alto riesgo. Practica primero en entornos seguros y consulta con un profesional de orientación y movilidad cuando corresponda.</string>
+    <string name="disclaimer_ack">Entiendo y quiero continuar</string>
+    <string name="disclaimer_ack_announce">Aviso de seguridad reconocido. Yendo a la pantalla principal.</string>
+    <string name="disclaimer_step_heading">Aviso de seguridad, paso 2 de 2</string>
+    <string name="training_step_heading">Formación, paso 1 de 2</string>
+
+    <!-- Home (FR-004) -->
+    <string name="home_title">Pantalla principal de Vision-RT</string>
+    <string name="home_status_idle">Asistencia inactiva.</string>
+    <string name="home_status_active">Modo obstáculos activo.</string>
+    <string name="home_start">Iniciar asistencia</string>
+    <string name="home_stop">Detener asistencia</string>
+    <string name="home_started_announce">Asistencia iniciada.</string>
+    <string name="home_stopped_announce">Asistencia detenida.</string>
+    <string name="home_silence_on">Silenciar el habla</string>
+    <string name="home_silence_off">Activar el habla</string>
+    <string name="home_silenced_announce">Habla silenciada.</string>
+    <string name="home_unsilenced_announce">Habla reactivada.</string>
+    <string name="home_go_settings">Ajustes</string>
+    <string name="home_go_help">Ayuda</string>
+
+    <!-- Settings (FR-012) -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_verbosity_title">Nivel de detalle de las alertas</string>
+    <string name="settings_verbosity_minimal">Mínimo</string>
+    <string name="settings_verbosity_normal">Normal</string>
+    <string name="settings_verbosity_detailed">Detallado</string>
+    <string name="settings_verbosity_announce">Nivel de detalle de las alertas: %1$s.</string>
+    <string name="settings_replay_training">Ver de nuevo la formación</string>
+    <string name="settings_replay_training_desc">Vuelve a abrir las pantallas de introducción cuando quieras.</string>
+
+    <!-- Help (SAF-003, SAF-005) -->
+    <string name="help_title">Ayuda y limitaciones</string>
+    <string name="help_body">Vision-RT es un complemento de los métodos de movilidad existentes. No sustituye el bastón blanco, el perro guía, la guía humana ni la formación en orientación y movilidad.\n\nLimitaciones conocidas: superficies transparentes como el vidrio, poca luz, superficies muy reflectantes, obstáculos pequeños u ocultos en parte, objetos en movimiento rápido, obstáculos por encima fuera de la vista de la cámara y suelos mojados o irregulares.\n\nLa app no lo detecta todo y no puede evitar todos los accidentes. No confíes solo en ella en entornos de alto riesgo. Practica primero en entornos seguros y consulta con un profesional de orientación y movilidad cuando corresponda.</string>
+    <string name="help_back">Volver a la pantalla principal</string>
+</resources>

@@ -14,8 +14,10 @@ android {
         applicationId = "com.visionrt.app"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0-M0"
+        versionCode = 2
+        versionName = "0.2.0-M1"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -52,10 +54,30 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("com.google.android.material:material:1.14.0")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.10.1")
+    implementation("androidx.navigation:navigation-ui-ktx:2.10.1")
 
     implementation("com.google.dagger:hilt-android:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 
+    // Makes HiltTestApplication (declared in src/debug/AndroidManifest.xml for
+    // @HiltAndroidTest instrumented tests) resolvable to lint and the debug build.
+    debugImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    // hilt-android-testing pulls androidx.test:core 1.4.0; consistent-resolution
+    // would then clash with the 1.7.0 required by androidTest deps. Upgrade it.
+    debugImplementation("androidx.test:core:1.7.0")
     testImplementation("junit:junit:4.13.2")
+
+    // Explicit hamcrest for the instrumented test APK: with the debug variant now
+    // bundling androidx.test via hilt-android-testing, consistent resolution can
+    // drop the hamcrest org.hamcrest.Matchers the Espresso runner expects.
+    androidTestImplementation("org.hamcrest:hamcrest:2.2")
+
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:core:1.7.0")
+    androidTestImplementation("androidx.test:rules:1.7.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("androidx.test.espresso:espresso-accessibility:3.7.0")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
 }

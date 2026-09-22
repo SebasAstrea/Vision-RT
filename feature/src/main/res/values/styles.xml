@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Large touch target base for every interactive control (UX-003). -->
+<resources>
+    <style name="VisionRT.TouchTarget" parent="">
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <style name="VisionRT.Button.Large" parent="Widget.Material3.Button">
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="VisionRT.Button.StartStop" parent="Widget.Material3.Button">
+        <item name="android:minWidth">200dp</item>
+        <item name="android:minHeight">72dp</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="VisionRT.TextView.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">18sp</item>
+        <item name="android:lineSpacingExtra">6dp</item>
+    </style>
+
+    <style name="VisionRT.TextView.Section" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">20sp</item>
+    </style>
+</resources>

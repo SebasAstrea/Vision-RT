@@ -43,5 +43,41 @@ jobs:
         run: ./gradlew detekt --stacktrace
       - name: Package size report
         run: bash tools/scripts/package_size_report.sh
-      - name: Accessibility scan placeholder
-        run: bash tools/scripts/accessibility_scan.sh
+
+  instrumentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          export ANDROID_HOME=/tmp/android-sdk
+          export ANDROID_SDK_ROOT=/tmp/android-sdk
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL -o /tmp/cmdline.zip \
+            https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q /tmp/cmdline.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          export SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses >/dev/null || true
+          "$SDKM" "platforms;android-36" "build-tools;36.0.0" "platform-tools" "emulator" \
+            "system-images;android-36;google_apis;x86_64" >/dev/null
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "ANDROID_HOME=/tmp/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/tmp/android-sdk" >> "$GITHUB_ENV"
+      - name: Accessibility scan (instrumented AccessibilityChecks)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: bash tools/scripts/accessibility_scan.sh
