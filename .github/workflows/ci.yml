@@ -45,10 +45,10 @@ jobs:
         run: bash tools/scripts/package_size_report.sh
 
   instrumentation:
-    # macOS runners provide Hypervisor.framework acceleration for the Android
-    # emulator; ubuntu-latest has no KVM and API 36 x86_64 boots too slowly
-    # (timeouts) in software emulation.
-    runs-on: macos-13
+    # API 30 (minSdk) x86_64 boots reliably in software emulation on the
+    # KVM-less ubuntu-latest runners; higher API levels time out. macOS runners
+    # have the required acceleration but queue for a long time.
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
@@ -70,14 +70,14 @@ jobs:
           export SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKM" --licenses >/dev/null || true
           "$SDKM" "platforms;android-36" "build-tools;36.0.0" "platform-tools" "emulator" \
-            "system-images;android-36;google_apis;x86_64" >/dev/null
+            "system-images;android-30;google_apis;x86_64" >/dev/null
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "ANDROID_HOME=/tmp/android-sdk" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=/tmp/android-sdk" >> "$GITHUB_ENV"
       - name: Accessibility scan (instrumented AccessibilityChecks)
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
+          api-level: 30
           arch: x86_64
           target: google_apis
           force-avd-creation: true
