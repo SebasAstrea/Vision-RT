@@ -6,3 +6,11 @@ plugins {
     id("com.google.dagger.hilt.android") version "2.57.2" apply false
     id("io.gitlab.arturbosch.detekt") version "1.23.8" apply false
 }
+
+// Reproducible builds: all dependency configurations are locked and the
+// generated gradle.lockfile files are committed (SCA / NFR-MAINT).
+subprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+}
