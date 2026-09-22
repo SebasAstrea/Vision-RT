@@ -6,4 +6,20 @@ set -euo pipefail
 # app/src/androidTest (UiTestHelpers.enableAccessibilityChecks), so a critical
 # defect (contentDescription, touch-target sizes, TalkBack traversal) fails the
 # build. Requires an attached device or emulator.
-./gradlew connectedDebugAndroidTest --stacktrace
+if ./gradlew connectedDebugAndroidTest --stacktrace; then
+  echo "Accessibility scan: PASS"
+else
+  echo "Accessibility scan: FAILED - instrumented results:"
+  python3 - <<'EOF'
+import glob, re
+for p in glob.glob('app/build/outputs/androidTest-results/connected/**/*.xml', recursive=True):
+    t = open(p, encoding='utf-8', errors='ignore').read()
+    for tc in re.finditer(r'<testcase name="([^"]+)"[^>]*>(.*?)</testcase>', t, re.S):
+        if '<failure' in tc.group(2) or '<error' in tc.group(2):
+            body = re.sub(r'<[^>]+>', '', tc.group(2)).strip()
+            print('FAIL', tc.group(1))
+            print(body[:1500])
+            print('====')
+EOF
+  exit 1
+fi
