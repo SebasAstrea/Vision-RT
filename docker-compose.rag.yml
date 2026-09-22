@@ -1,0 +1,39 @@
+name: rag-visionrt
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-visionrt-ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ollama_data:/root/.ollama
+
+  rag:
+    build: ./rag
+    image: rag-visionrt-rag
+    container_name: rag-visionrt-rag
+    restart: unless-stopped
+    ports:
+      - "8767:8765"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      RAG_PORT: 8765
+      RAG_EMBED_MODEL: bge-m3
+      RAG_EMBED_DIM: 1024
+      RAG_PROJECT: VisionRT
+      RAG_COLLECTION: visionrt_chunks
+    volumes:
+      - .:/app
+      - rag_data:/app/rag/data
+    working_dir: /app
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+volumes:
+  ollama_data:
+  rag_data:

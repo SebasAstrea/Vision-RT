@@ -1,0 +1,43 @@
+# Gradle
+.gradle/
+build/
+.kotlin/
+
+# Android
+local.properties
+*.apk
+*.aab
+*.ap_
+*.jks
+*.keystore
+*.hprof
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+*.tmp
+*~
+
+# RAG runtime (auto-generated, own project, node-local)
+/rag/data/
+/rag.config.json
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Scratch
+/todo

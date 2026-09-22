@@ -1,0 +1,8 @@
+* @VisionRT/maintainers
+
+# Architecture guardrails are enforced in core/orchestration.
+/core/src/main/java/com/visionrt/core/orchestration/ @VisionRT/architecture
+
+# Perception/ML surfaces.
+/perception/src/ @VisionRT/ml
+/inference/src/ @VisionRT/ml

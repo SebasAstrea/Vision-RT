@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "visionrt-annotation-schema-1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "split", "annotations"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "split": { "enum": ["train", "val", "test"] },
+    "annotations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/detectionAnnotation" }
+    }
+  },
+  "$defs": {
+    "detectionAnnotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["annotationId", "image", "objects"],
+      "properties": {
+        "annotationId": { "type": "string", "format": "uuid" },
+        "image": { "$ref": "#/$defs/imageRef" },
+        "objects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/objectAnnotation" }
+        },
+        "sceneContext": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "indoor": { "type": "boolean" },
+            "lighting": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "lux": { "type": "number", "minimum": 0 }
+              }
+            },
+            "note": { "type": "string", "maxLength": 500 }
+          }
+        }
+      }
+    },
+    "imageRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "license", "width", "height", "camera"],
+      "properties": {
+        "source": { "type": "string", "format": "uri" },
+        "license": { "enum": ["CC0", "CC-BY-4.0"] },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "camera": { "const": false }
+      }
+    },
+    "objectAnnotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classId", "label", "bbox"],
+      "properties": {
+        "classId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "label": { "type": "string" },
+        "bbox": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["xMin", "yMin", "xMax", "yMax"],
+          "properties": {
+            "xMin": { "type": "number", "minimum": 0, "maximum": 1 },
+            "yMin": { "type": "number", "minimum": 0, "maximum": 1 },
+            "xMax": { "type": "number", "minimum": 0, "maximum": 1 },
+            "yMax": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "occluded": { "type": "boolean", "default": false },
+        "truncated": { "type": "boolean", "default": false },
+        "attribute": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "motion": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "blurred": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "note": { "type": "string", "maxLength": 500 }
+      }
+    }
+  }
+}
