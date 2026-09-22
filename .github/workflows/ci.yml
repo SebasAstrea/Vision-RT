@@ -81,6 +81,16 @@ jobs:
           arch: x86_64
           target: google_apis
           force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           disable-animations: true
           script: bash tools/scripts/accessibility_scan.sh
+      - name: Upload androidTest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidTest-results
+          path: |
+            app/build/outputs/androidTest-results/connected/**/*.xml
+            app/build/reports/androidTests/connected/**/*
+          if-no-files-found: ignore
