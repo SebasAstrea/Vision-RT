@@ -5,22 +5,8 @@ set -euo pipefail
 # against the app shell. The scanner is wired into every screen interaction in
 # app/src/androidTest (UiTestHelpers.enableAccessibilityChecks), so a critical
 # defect (contentDescription, touch-target sizes, TalkBack traversal) fails the
-# build. Requires an attached device or emulator.
-
-# On KVM-less CI runners the emulator can flip sys.boot_completed before the
-# system services (package/settings) are ready; installing APKs then fails with
-# "Can't find service: package". Wait until they are actually usable.
-for i in $(seq 1 300); do
-  if adb shell getprop sys.boot_completed 2>/dev/null | grep -q "1" &&
-     adb shell cmd package list packages -p com.android.shell >/dev/null 2>&1; then
-    break
-  fi
-  [ "$i" -eq 300 ] && { echo "Emulator did not become ready" >&2; exit 1; }
-  sleep 2
-done
-# Settle a bit more once the package service answers.
-sleep 10
-
+# build. Requires an attached device or emulator (e.g. adb-connected phone;
+# not part of GitHub Actions CI).
 if ./gradlew :app:connectedDebugAndroidTest --stacktrace; then
   echo "Accessibility scan: PASS"
 else
