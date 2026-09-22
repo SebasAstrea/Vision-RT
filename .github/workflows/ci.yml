@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+env:
+  ANDROID_HOME: ${{ runner.temp }}/android-sdk
+  ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,10 +21,18 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Set up Android SDK
-        run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" >/dev/null
         shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL -o /tmp/cmdline.zip \
+            https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q /tmp/cmdline.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          export SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses >/dev/null || true
+          "$SDKM" "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0" "platform-tools" >/dev/null
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
       - name: Build (assembleDebug)
         run: ./gradlew assembleDebug --stacktrace
       - name: Unit tests
