@@ -1,29 +1,66 @@
 package com.visionrt.feature.home
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import com.visionrt.core.assistance.AssistanceController
+import com.visionrt.data.settings.SettingsRepository
 import com.visionrt.feature.R
 import com.visionrt.feature.accessibility.AnnouncementUtil
+import com.visionrt.feature.accessibility.ConfirmTaps
+import com.visionrt.feature.accessibility.ScreenNarrator
 import com.visionrt.feature.databinding.FragmentHomeBinding
+import com.visionrt.feature.voice.ScreenVoice
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /**
  * App shell home (FR-004): primary start/stop control, a persistent speech
  * mute control, mode entries (FR-003) and navigation to settings and help.
- * Real assistance modes and audible/haptic feedback arrive in M2+.
+ *
+ * M3: Start requests CAMERA permission (human-approved) then drives the real
+ * [AssistanceController] pipeline; Stop releases camera + detector.
  */
 @AndroidEntryPoint
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
+    @Inject
+    lateinit var settings: SettingsRepository
+
+    @Inject
+    lateinit var voice: ScreenVoice
+
+    @Inject
+    lateinit var taps: ConfirmTaps
+
+    @Inject
+    lateinit var assistance: AssistanceController
+
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private var assistanceActive = false
-    private var silenced = false
+    private var startPending = false
+
+    private val cameraPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted && startPending) {
+                startPending = false
+                startAssistance()
+            } else if (!granted) {
+                startPending = false
+                speakStatus(R.string.home_camera_denied)
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,18 +73,25 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.startStopButton.setOnClickListener { toggleAssistance() }
-        binding.silenceButton.setOnClickListener { toggleSilence() }
-
-        binding.obstacleModeButton.setOnClickListener { announcePlaceholder(it) }
-        binding.objectModeButton.setOnClickListener { announcePlaceholder(it) }
-        binding.textModeButton.setOnClickListener { announcePlaceholder(it) }
-
-        binding.settingsButton.setOnClickListener {
-            binding.root.findNavController().navigate(R.id.action_home_to_settings)
+        val scope = viewLifecycleOwner.lifecycleScope
+        wireButtons(scope)
+        syncStartStopUi()
+        viewLifecycleOwner.lifecycleScope.launch {
+            settings.speechMuted.collect { muted ->
+                binding.silenceButton.text = getString(
+                    if (muted) R.string.home_silence_off else R.string.home_silence_on,
+                )
+            }
         }
-        binding.helpButton.setOnClickListener {
-            binding.root.findNavController().navigate(R.id.action_home_to_help)
+        scope.launch {
+            voice.narrate(
+                ScreenNarrator.describe(
+                    requireContext(),
+                    binding.root,
+                    getString(R.string.home_title),
+                    getString(R.string.home_status_idle),
+                ),
+            )
         }
     }
 
@@ -56,36 +100,78 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onDestroyView()
     }
 
+    private fun wireButtons(scope: androidx.lifecycle.LifecycleCoroutineScope) {
+        taps.attach(binding.startStopButton, scope) { toggleAssistance() }
+        taps.attach(binding.silenceButton, scope) { toggleSilence() }
+        taps.attach(binding.obstacleModeButton, scope) { announcePlaceholder(it) }
+        taps.attach(binding.objectModeButton, scope) { announcePlaceholder(it) }
+        taps.attach(binding.textModeButton, scope) { announcePlaceholder(it) }
+        taps.attach(binding.settingsButton, scope) {
+            binding.root.findNavController().navigate(R.id.action_home_to_settings)
+        }
+        taps.attach(binding.helpButton, scope) {
+            binding.root.findNavController().navigate(R.id.action_home_to_help)
+        }
+    }
+
     private fun toggleAssistance() {
-        assistanceActive = !assistanceActive
+        if (assistance.isActive()) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                assistance.stop()
+                syncStartStopUi()
+                speakStatus(R.string.home_stopped_announce)
+            }
+        } else if (
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            startAssistance()
+        } else {
+            startPending = true
+            cameraPermission.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun startAssistance() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = assistance.start()
+            startPending = false
+            syncStartStopUi()
+            speakStatus(
+                if (result.isSuccess) R.string.home_started_announce else R.string.home_start_failed,
+            )
+        }
+    }
+
+    private fun syncStartStopUi() {
+        val active = assistance.isActive()
         binding.startStopButton.text = getString(
-            if (assistanceActive) R.string.home_stop else R.string.home_start,
+            if (active) R.string.home_stop else R.string.home_start,
         )
         binding.statusLine.text = getString(
-            if (assistanceActive) R.string.home_status_active else R.string.home_status_idle,
+            if (active) R.string.home_status_active else R.string.home_status_idle,
         )
-        AnnouncementUtil.announce(
-            binding.startStopButton,
-            getString(
-                if (assistanceActive) R.string.home_started_announce else R.string.home_stopped_announce,
-            ),
-        )
+    }
+
+    private fun speakStatus(resId: Int) {
+        val message = getString(resId)
+        AnnouncementUtil.announce(binding.startStopButton, message)
+        viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
     }
 
     private fun toggleSilence() {
-        silenced = !silenced
-        binding.silenceButton.text = getString(
-            if (silenced) R.string.home_silence_off else R.string.home_silence_on,
-        )
-        AnnouncementUtil.announce(
-            binding.silenceButton,
-            getString(
-                if (silenced) R.string.home_silenced_announce else R.string.home_unsilenced_announce,
-            ),
-        )
+        viewLifecycleOwner.lifecycleScope.launch {
+            val muted = !settings.speechMuted.first()
+            settings.setSpeechMuted(muted)
+            val res = if (muted) R.string.home_silenced_announce else R.string.home_unsilenced_announce
+            AnnouncementUtil.announce(binding.silenceButton, getString(res))
+            if (muted) voice.stop() else voice.speakNow(getString(res))
+        }
     }
 
     private fun announcePlaceholder(anchor: View) {
-        AnnouncementUtil.announce(anchor, getString(R.string.mode_placeholder))
+        val message = getString(R.string.mode_placeholder)
+        AnnouncementUtil.announce(anchor, message)
+        viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
     }
 }

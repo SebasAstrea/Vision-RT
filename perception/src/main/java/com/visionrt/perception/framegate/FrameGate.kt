@@ -11,4 +11,7 @@ interface FrameGate {
     fun submit(frame: PerceptionFrame)
     fun latest(): PerceptionFrame?
     fun clear()
+
+    /** Atomically takes the pending frame, leaving the gate empty. */
+    fun consume(): PerceptionFrame?
 }

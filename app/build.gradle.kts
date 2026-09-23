@@ -28,6 +28,13 @@ android {
                 "proguard-rules.pro"
             )
         }
+        // Installable debug-like APK without src/debug's HiltTestApplication
+        // override (that override is required only for connectedAndroidTest).
+        create("demo") {
+            initWith(getByName("debug"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("debug")
+        }
     }
 
     compileOptions {
@@ -50,6 +57,12 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":feature"))
     implementation(project(":data"))
+    implementation(project(":perception"))
+    implementation(project(":inference"))
+    implementation(project(":feedback"))
+    implementation(project(":benchmark"))
+
+    implementation("androidx.lifecycle:lifecycle-process:2.9.4")
 
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.8.0")

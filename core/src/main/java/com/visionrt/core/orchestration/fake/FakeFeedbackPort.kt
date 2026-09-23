@@ -1,0 +1,53 @@
+package com.visionrt.core.orchestration.fake
+
+import com.visionrt.core.domain.Alert
+import com.visionrt.core.domain.AlertPriority
+import com.visionrt.core.orchestration.FeedbackPort
+
+/**
+ * Recording TTS/haptics double (M2 deliverable). Captures every emit,
+ * interrupt and stopAll so tests can assert priority and interruption without
+ * touching real audio or vibration APIs.
+ */
+class FakeFeedbackPort : FeedbackPort {
+
+    private val _emitted = mutableListOf<Alert>()
+    val emitted: List<Alert> get() = _emitted
+
+    private val _interrupts = mutableListOf<AlertPriority>()
+    val interrupts: List<AlertPriority> get() = _interrupts
+
+    var stopAllCount: Int = 0
+        private set
+
+    /** Priority of the last in-flight (non-interrupted) alert, if any. */
+    var currentPriority: AlertPriority? = null
+        private set
+
+    override suspend fun emit(alert: Alert) {
+        _emitted += alert
+        currentPriority = alert.priority
+    }
+
+    override suspend fun interruptCurrent(priority: AlertPriority) {
+        _interrupts += priority
+        val current = currentPriority
+        if (current != null && current.ordinal >= priority.ordinal) {
+            currentPriority = null
+        }
+    }
+
+    override suspend fun stopAll() {
+        stopAllCount++
+        currentPriority = null
+    }
+
+    fun messages(): List<String> = _emitted.map { it.message }
+
+    fun clear() {
+        _emitted.clear()
+        _interrupts.clear()
+        stopAllCount = 0
+        currentPriority = null
+    }
+}

@@ -129,37 +129,21 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/onboarding_practice_button" />
 
-            <LinearLayout
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/skip_button"
+                style="@style/VisionRT.Button.Tonal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:orientation="horizontal">
+                android:text="@string/common_skip" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/skip_button"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:text="@string/common_skip" />
-
-                <Space
-                    android:layout_width="16dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="0" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/continue_button"
-                    style="@style/VisionRT.Button.Large"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/common_continue" />
-            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/continue_button"
+                style="@style/VisionRT.Button.Large"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/common_continue" />
         </LinearLayout>
 
         <LinearLayout
@@ -196,11 +180,9 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/back_to_training_button"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/VisionRT.Button.Text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
                 android:text="@string/common_back" />
         </LinearLayout>
     </LinearLayout>

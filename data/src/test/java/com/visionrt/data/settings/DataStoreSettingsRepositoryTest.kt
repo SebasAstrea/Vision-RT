@@ -37,6 +37,7 @@ class DataStoreSettingsRepositoryTest {
             val repo = DataStoreSettingsRepository(store)
             assertFalse(repo.onboardingAcknowledged.first())
             assertFalse(repo.trainingCompleted.first())
+            assertFalse(repo.speechMuted.first())
             assertEquals(Verbosity.NORMAL, repo.verbosity.first())
         }
         scope.cancel()
@@ -65,6 +66,33 @@ class DataStoreSettingsRepositoryTest {
                 repo.setVerbosity(v)
                 assertEquals(v, repo.verbosity.first())
             }
+            scope.cancel()
+        }
+    }
+
+    @Test
+    fun speechMutedPersistsAcrossInstances() {
+        val file = tmp.newFile("s.preferences_pb")
+        runBlocking {
+            val (first, firstScope) = newStore(file)
+            DataStoreSettingsRepository(first).setSpeechMuted(true)
+            firstScope.cancel()
+
+            val (second, secondScope) = newStore(file)
+            assertTrue(DataStoreSettingsRepository(second).speechMuted.first())
+            secondScope.cancel()
+        }
+    }
+
+    @Test
+    fun speechMutedRoundTrips() {
+        runBlocking {
+            val (store, scope) = newStore(tmp.newFile("s.preferences_pb"))
+            val repo = DataStoreSettingsRepository(store)
+            repo.setSpeechMuted(true)
+            assertTrue(repo.speechMuted.first())
+            repo.setSpeechMuted(false)
+            assertFalse(repo.speechMuted.first())
             scope.cancel()
         }
     }

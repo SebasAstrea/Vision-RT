@@ -22,6 +22,7 @@ class TestSettingsRepository : SettingsRepository {
     private val ackFlow = MutableStateFlow(STATE.onboardingAcknowledged)
     private val trainingFlow = MutableStateFlow(STATE.trainingCompleted)
     private val verbosityFlow = MutableStateFlow(STATE.verbosity)
+    private val speechMutedFlow = MutableStateFlow(STATE.speechMuted)
 
     override val onboardingAcknowledged: StateFlow<Boolean> = ackFlow.asStateFlow()
 
@@ -44,15 +45,24 @@ class TestSettingsRepository : SettingsRepository {
         verbosityFlow.value = verbosity
     }
 
+    override val speechMuted: StateFlow<Boolean> = speechMutedFlow.asStateFlow()
+
+    override suspend fun setSpeechMuted(muted: Boolean) {
+        STATE.speechMuted = muted
+        speechMutedFlow.value = muted
+    }
+
     object STATE {
         var onboardingAcknowledged = false
         var trainingCompleted = false
         var verbosity = Verbosity.NORMAL
+        var speechMuted = false
 
         fun reset() {
             onboardingAcknowledged = false
             trainingCompleted = false
             verbosity = Verbosity.NORMAL
+            speechMuted = false
         }
     }
 }

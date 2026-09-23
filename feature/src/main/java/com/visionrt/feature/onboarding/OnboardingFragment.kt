@@ -10,8 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import com.visionrt.data.settings.SettingsRepository
 import com.visionrt.feature.R
 import com.visionrt.feature.accessibility.AnnouncementUtil
+import com.visionrt.feature.accessibility.ConfirmTaps
 import com.visionrt.feature.accessibility.FocusUtil
+import com.visionrt.feature.accessibility.ScreenNarrator
 import com.visionrt.feature.databinding.FragmentOnboardingBinding
+import com.visionrt.feature.voice.ScreenVoice
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -30,6 +33,12 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
 
     @Inject
     lateinit var settings: SettingsRepository
+
+    @Inject
+    lateinit var voice: ScreenVoice
+
+    @Inject
+    lateinit var taps: ConfirmTaps
 
     private var _binding: FragmentOnboardingBinding? = null
     private val binding get() = _binding!!
@@ -64,11 +73,23 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
             }
         }
 
-        binding.practiceButton.setOnClickListener { playSample() }
-        binding.continueButton.setOnClickListener { onContinue() }
-        binding.skipButton.setOnClickListener { onSkip() }
-        binding.ackButton.setOnClickListener { onAcknowledge() }
-        binding.backToTrainingButton.setOnClickListener { setStep(OnboardingStep.TRAINING) }
+        val scope = viewLifecycleOwner.lifecycleScope
+        taps.attach(binding.practiceButton, scope) { playSample() }
+        taps.attach(binding.continueButton, scope) { onContinue() }
+        taps.attach(binding.skipButton, scope) { onSkip() }
+        taps.attach(binding.ackButton, scope) { onAcknowledge() }
+        taps.attach(binding.backToTrainingButton, scope) { setStep(OnboardingStep.TRAINING) }
+
+        scope.launch {
+            voice.narrate(
+                ScreenNarrator.describe(
+                    requireContext(),
+                    binding.root,
+                    getString(R.string.training_step_heading),
+                    getString(R.string.onboarding_title),
+                ),
+            )
+        }
     }
 
     override fun onDestroyView() {
@@ -79,14 +100,12 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
     private fun setupReplayMode() {
         binding.skipButton.visibility = View.GONE
         binding.continueButton.setText(R.string.common_back)
-        binding.continueButton.setOnClickListener { binding.root.findNavController().navigateUp() }
     }
 
     private fun playSample() {
-        AnnouncementUtil.announce(
-            binding.practiceButton,
-            getString(R.string.onboarding_sample_alert),
-        )
+        val sample = getString(R.string.onboarding_sample_alert)
+        AnnouncementUtil.announce(binding.practiceButton, sample)
+        viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(sample) }
     }
 
     private fun onContinue() {
@@ -115,6 +134,21 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
                 if (training) R.string.training_step_heading else R.string.disclaimer_step_heading,
             ),
         )
+        val heading = getString(
+            if (training) R.string.training_step_heading else R.string.disclaimer_step_heading,
+        )
+        viewLifecycleOwner.lifecycleScope.launch {
+            voice.narrate(
+                ScreenNarrator.describe(
+                    requireContext(),
+                    binding.root,
+                    heading,
+                    getString(
+                        if (training) R.string.onboarding_title else R.string.disclaimer_title,
+                    ),
+                ),
+            )
+        }
     }
 
     private fun onAcknowledge() {

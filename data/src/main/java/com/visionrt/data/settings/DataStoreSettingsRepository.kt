@@ -41,9 +41,17 @@ class DataStoreSettingsRepository(
         dataStore.edit { it[Keys.VERBOSITY] = verbosity.key }
     }
 
+    override val speechMuted: Flow<Boolean> =
+        dataStore.data.map { it[Keys.SPEECH_MUTED] ?: false }
+
+    override suspend fun setSpeechMuted(muted: Boolean) {
+        dataStore.edit { it[Keys.SPEECH_MUTED] = muted }
+    }
+
     private object Keys {
         val ONBOARDING_ACKNOWLEDGED = booleanPreferencesKey("onboarding_acknowledged")
         val TRAINING_COMPLETED = booleanPreferencesKey("training_completed")
         val VERBOSITY = stringPreferencesKey("verbosity")
+        val SPEECH_MUTED = booleanPreferencesKey("speech_muted")
     }
 }

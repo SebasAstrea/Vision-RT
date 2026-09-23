@@ -32,7 +32,8 @@ class ModuleBoundaryTest {
         "feedback" to setOf("core"),
         "data" to setOf("core"),
         "benchmark" to setOf("core"),
-        "app" to setOf("core", "feature", "data"),
+        // app wires CameraX + LiteRT + orchestration (ARCHITECTURE §7.1.3).
+        "app" to setOf("core", "feature", "data", "perception", "inference", "feedback", "benchmark"),
     )
 
     @Test

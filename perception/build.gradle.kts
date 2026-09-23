@@ -26,4 +26,16 @@ kotlin {
 
 dependencies {
     implementation(project(":core"))
+
+    // CameraX (ARCHITECTURE §6.3): ImageAnalysis 640x480 latest-only, no view.
+    val cameraxVersion = "1.4.1"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-video:$cameraxVersion")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("androidx.lifecycle:lifecycle-process:2.9.4")
+
+    testImplementation("junit:junit:4.13.2")
 }

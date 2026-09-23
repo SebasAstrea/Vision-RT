@@ -80,31 +80,20 @@
             android:layout_marginTop="8dp"
             android:text="@string/mode_text_reading" />
 
-        <LinearLayout
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/settings_button"
+            style="@style/VisionRT.Button.Large"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:orientation="horizontal">
+            android:text="@string/home_go_settings" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/settings_button"
-                style="@style/VisionRT.Button.Large"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/home_go_settings" />
-
-            <Space
-                android:layout_width="16dp"
-                android:layout_height="1dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/help_button"
-                style="@style/VisionRT.Button.Large"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/home_go_help" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/help_button"
+            style="@style/VisionRT.Button.Large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/home_go_help" />
     </LinearLayout>
 </ScrollView>

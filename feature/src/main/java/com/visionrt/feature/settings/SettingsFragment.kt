@@ -11,7 +11,10 @@ import com.visionrt.core.domain.Verbosity
 import com.visionrt.data.settings.SettingsRepository
 import com.visionrt.feature.R
 import com.visionrt.feature.accessibility.AnnouncementUtil
+import com.visionrt.feature.accessibility.ConfirmTaps
+import com.visionrt.feature.accessibility.ScreenNarrator
 import com.visionrt.feature.databinding.FragmentSettingsBinding
+import com.visionrt.feature.voice.ScreenVoice
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -25,6 +28,12 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     @Inject
     lateinit var settings: SettingsRepository
+
+    @Inject
+    lateinit var voice: ScreenVoice
+
+    @Inject
+    lateinit var taps: ConfirmTaps
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
@@ -51,14 +60,24 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 else -> Verbosity.NORMAL
             }
             viewLifecycleOwner.lifecycleScope.launch { settings.setVerbosity(selected) }
-            AnnouncementUtil.announce(
-                binding.verbosityGroup,
-                getString(R.string.settings_verbosity_announce, verbosityLabel(selected)),
-            )
+            val message = getString(R.string.settings_verbosity_announce, verbosityLabel(selected))
+            AnnouncementUtil.announce(binding.verbosityGroup, message)
+            viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
         }
 
-        binding.replayTrainingButton.setOnClickListener {
+        taps.attach(binding.replayTrainingButton, viewLifecycleOwner.lifecycleScope) {
             binding.root.findNavController().navigate(R.id.action_settings_to_onboarding)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            voice.narrate(
+                ScreenNarrator.describe(
+                    requireContext(),
+                    binding.root,
+                    getString(R.string.settings_title),
+                    getString(R.string.settings_verbosity_title),
+                ),
+            )
         }
     }
 

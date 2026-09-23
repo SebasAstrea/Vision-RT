@@ -22,4 +22,9 @@ interface SettingsRepository {
     val verbosity: Flow<Verbosity>
 
     suspend fun setVerbosity(verbosity: Verbosity)
+
+    /** FR-004/FR-010: app-level speech mute (screen narration + future alerts). */
+    val speechMuted: Flow<Boolean>
+
+    suspend fun setSpeechMuted(muted: Boolean)
 }

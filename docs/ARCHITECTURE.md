@@ -472,6 +472,19 @@ The repository should be modularized as follows:
 5. `orchestration` coordinates perception, inference, and feedback.
 6. No module may access camera, model files, or TTS directly except through its designated layer.
 
+Enforced by `core` unit test `ModuleBoundaryTest` (allowlist):
+
+| Module | May depend on |
+|---|---|
+| `core` | — |
+| `feature` | `core`, `data` |
+| `perception` | `core` |
+| `inference` | `core`, `perception` |
+| `feedback` | `core` |
+| `data` | `core` |
+| `benchmark` | `core` |
+| `app` | `core`, `feature`, `data`, `perception`, `inference`, `feedback`, `benchmark` |
+
 ---
 
 ## 8. Core Domain Model

@@ -52,6 +52,8 @@
     <string name="home_unsilenced_announce">Speech unmuted.</string>
     <string name="home_go_settings">Settings</string>
     <string name="home_go_help">Help</string>
+    <string name="home_camera_denied">Camera permission is required for obstacle assistance.</string>
+    <string name="home_start_failed">Could not start assistance. Try again.</string>
 
     <!-- Settings (FR-012) -->
     <string name="settings_title">Settings</string>
@@ -62,6 +64,11 @@
     <string name="settings_verbosity_announce">Alert detail level: %1$s.</string>
     <string name="settings_replay_training">Review the training</string>
     <string name="settings_replay_training_desc">Open the introductory screens again at any time.</string>
+
+    <!-- Screen narration and tap confirmation (UX-001, FR-010) -->
+    <string name="narrator_from_top">From the top of the screen to the bottom:</string>
+    <string name="narrator_button">Button %1$d: %2$s</string>
+    <string name="confirm_tap">You tapped the button %1$s. Tap again to activate.</string>
 
     <!-- Help (SAF-003, SAF-005) -->
     <string name="help_title">Help and limitations</string>

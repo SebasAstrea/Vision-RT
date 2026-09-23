@@ -52,6 +52,8 @@
     <string name="home_unsilenced_announce">Habla reactivada.</string>
     <string name="home_go_settings">Ajustes</string>
     <string name="home_go_help">Ayuda</string>
+    <string name="home_camera_denied">Se necesita el permiso de cámara para la asistencia de obstáculos.</string>
+    <string name="home_start_failed">No se pudo iniciar la asistencia. Inténtalo de nuevo.</string>
 
     <!-- Settings (FR-012) -->
     <string name="settings_title">Ajustes</string>
@@ -62,6 +64,11 @@
     <string name="settings_verbosity_announce">Nivel de detalle de las alertas: %1$s.</string>
     <string name="settings_replay_training">Ver de nuevo la formación</string>
     <string name="settings_replay_training_desc">Vuelve a abrir las pantallas de introducción cuando quieras.</string>
+
+    <!-- Screen narration and tap confirmation (UX-001, FR-010) -->
+    <string name="narrator_from_top">De la parte superior de la pantalla hacia abajo:</string>
+    <string name="narrator_button">Botón %1$d: %2$s</string>
+    <string name="confirm_tap">Has tocado el botón %1$s. Toca otra vez para activar.</string>
 
     <!-- Help (SAF-003, SAF-005) -->
     <string name="help_title">Ayuda y limitaciones</string>

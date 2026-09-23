@@ -41,3 +41,7 @@ __pycache__/
 
 # Scratch
 /todo
+
+# Local model export scratch (assets under app/src/main/assets are committed)
+/yolov8n.*
+/runs/

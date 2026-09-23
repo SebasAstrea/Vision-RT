@@ -37,26 +37,23 @@
 
             <RadioButton
                 android:id="@+id/verbosity_minimal"
+                style="@style/VisionRTRadioButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="56dp"
                 android:text="@string/settings_verbosity_minimal" />
 
             <RadioButton
                 android:id="@+id/verbosity_normal"
+                style="@style/VisionRTRadioButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="56dp"
                 android:text="@string/settings_verbosity_normal" />
 
             <RadioButton
                 android:id="@+id/verbosity_detailed"
+                style="@style/VisionRTRadioButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="56dp"
                 android:text="@string/settings_verbosity_detailed" />
         </RadioGroup>
 

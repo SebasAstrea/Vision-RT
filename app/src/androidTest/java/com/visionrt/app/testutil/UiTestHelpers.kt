@@ -27,12 +27,14 @@ fun enableAccessibilityChecks() {
 }
 
 fun click(matcher: Matcher<View>) {
-    Espresso.onView(matcher).perform(ViewActions.click())
+    // Double-click: first tap only announces the button (ConfirmTaps), second activates.
+    Espresso.onView(matcher).perform(ViewActions.click(), ViewActions.click())
 }
 
-/** Clicks a view inside a ScrollView, scrolling to it first. */
+/** Clicks a view inside a ScrollView, scrolling to it first. Double-clicks for ConfirmTaps. */
 fun scrollAndClick(matcher: Matcher<View>) {
-    Espresso.onView(matcher).perform(ViewActions.scrollTo(), ViewActions.click())
+    Espresso.onView(matcher)
+        .perform(ViewActions.scrollTo(), ViewActions.click(), ViewActions.click())
 }
 
 /** Matcher for a view whose text equals the localized value of a string
