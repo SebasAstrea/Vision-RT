@@ -109,11 +109,6 @@ visionrt.storePassword=TU_PASSWORD
 visionrt.keyPassword=TU_PASSWORD
 ```
 
-> [!CAUTION]
-> No subas nunca `visionrt-release.jks` ni `~/.gradle/gradle.properties`
-> al repositorio. Si pierdes el keystore o sus contrasenas, no podras
-> publicar actualizaciones de la aplicacion.
-
 ## Modelo de deteccion
 
 El modelo activo es `yolo11n_640_int8.tflite` (YOLOv11n, entrada 640x640,
