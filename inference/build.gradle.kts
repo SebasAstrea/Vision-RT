@@ -33,7 +33,12 @@ dependencies {
     // reflective entries already.
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
 
+    // ML Kit Text Recognition v2 (ADR-006, FR-009): on-device latin OCR.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    // tasks.await() for ML Kit Task<T> bridges.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 
     testImplementation("junit:junit:4.13.2")
     // org.json ships on Android; JVM unit tests need the standalone artifact.

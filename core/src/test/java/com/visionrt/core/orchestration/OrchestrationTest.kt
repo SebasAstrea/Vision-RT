@@ -40,7 +40,21 @@ class ModeControllerTest {
     fun rejectsIllegalTransitionAndKeepsState() = runTest {
         assertFalse(controller.onReady())
         assertEquals(OrchestrationState.IDLE, controller.current)
-        assertFalse(controller.enterTextReading())
+        // IDLE cannot jump straight to DEGRADED (must go through STARTING).
+        assertFalse(controller.degrade())
+        assertEquals(OrchestrationState.IDLE, controller.current)
+    }
+
+    @Test
+    fun onDemandModesAllowedFromIdle() = runTest {
+        // M5: FR-008 / FR-009 may start without continuous obstacle assistance.
+        assertTrue(controller.enterObjectQuery())
+        assertEquals(OrchestrationState.OBJECT_QUERY_ACTIVE, controller.current)
+        assertTrue(controller.stopSession())
+        assertEquals(OrchestrationState.IDLE, controller.current)
+        assertTrue(controller.enterTextReading())
+        assertEquals(OrchestrationState.TEXT_READING_ACTIVE, controller.current)
+        assertTrue(controller.stopSession())
         assertEquals(OrchestrationState.IDLE, controller.current)
     }
 

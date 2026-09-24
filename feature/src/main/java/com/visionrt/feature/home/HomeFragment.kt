@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.visionrt.core.assistance.AssistanceController
+import com.visionrt.core.summary.ObjectSummaryService
 import com.visionrt.data.settings.SettingsRepository
 import com.visionrt.feature.R
 import com.visionrt.feature.accessibility.AnnouncementUtil
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
  * [AssistanceController] pipeline; Stop releases camera + detector.
  */
 @AndroidEntryPoint
+@Suppress("TooManyFunctions") // home shell controls (FR-004)
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     @Inject
@@ -45,6 +47,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     @Inject
     lateinit var assistance: AssistanceController
+
+    @Inject
+    lateinit var objectSummary: ObjectSummaryService
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -103,15 +108,44 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun wireButtons(scope: androidx.lifecycle.LifecycleCoroutineScope) {
         taps.attach(binding.startStopButton, scope) { toggleAssistance() }
         taps.attach(binding.silenceButton, scope) { toggleSilence() }
-        taps.attach(binding.obstacleModeButton, scope) { announcePlaceholder(it) }
-        taps.attach(binding.objectModeButton, scope) { announcePlaceholder(it) }
-        taps.attach(binding.textModeButton, scope) { announcePlaceholder(it) }
+        taps.attach(binding.obstacleModeButton, scope) { announceHint(it, R.string.mode_obstacle) }
+        taps.attach(binding.objectModeButton, scope) { runObjectSummary() }
+        taps.attach(binding.textModeButton, scope) {
+            binding.root.findNavController().navigate(R.id.action_home_to_text_reading)
+        }
         taps.attach(binding.settingsButton, scope) {
             binding.root.findNavController().navigate(R.id.action_home_to_settings)
         }
         taps.attach(binding.helpButton, scope) {
             binding.root.findNavController().navigate(R.id.action_home_to_help)
         }
+    }
+
+    private fun runObjectSummary() {
+        val anchor = binding.objectModeButton
+        AnnouncementUtil.announce(anchor, getString(R.string.object_summary_running))
+        viewLifecycleOwner.lifecycleScope.launch {
+            voice.speakNow(getString(R.string.object_summary_running))
+            objectSummary.describeScene().fold(
+                onSuccess = { summary ->
+                    AnnouncementUtil.announce(anchor, summary)
+                    // Summary already emitted as USER_REQUESTED alert (TTS path).
+                },
+                onFailure = {
+                    val msg = getString(R.string.object_summary_failed)
+                    AnnouncementUtil.announce(anchor, msg)
+                    voice.speakNow(msg)
+                },
+            )
+        }
+    }
+
+    private fun announceHint(anchor: View, resId: Int) {
+        // Obstacle continuous mode is controlled by start/stop; this button
+        // only confirms which mode the user focused (FR-003 labels).
+        val message = getString(resId)
+        AnnouncementUtil.announce(anchor, message)
+        viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
     }
 
     private fun toggleAssistance() {
@@ -167,11 +201,5 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             AnnouncementUtil.announce(binding.silenceButton, getString(res))
             if (muted) voice.stop() else voice.speakNow(getString(res))
         }
-    }
-
-    private fun announcePlaceholder(anchor: View) {
-        val message = getString(R.string.mode_placeholder)
-        AnnouncementUtil.announce(anchor, message)
-        viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
     }
 }

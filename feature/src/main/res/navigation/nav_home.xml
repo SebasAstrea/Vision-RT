@@ -27,6 +27,19 @@
         <action
             android:id="@+id/action_home_to_help"
             app:destination="@id/dest_help" />
+        <action
+            android:id="@+id/action_home_to_text_reading"
+            app:destination="@id/dest_text_reading" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dest_text_reading"
+        android:name="com.visionrt.feature.textreading.TextReadingFragment">
+        <action
+            android:id="@+id/action_text_reading_to_home"
+            app:destination="@id/dest_home"
+            app:popUpTo="@id/dest_home"
+            app:popUpToInclusive="false" />
     </fragment>
 
     <fragment

@@ -771,6 +771,12 @@ interface TextRecognizer {
 }
 ```
 
+**M5 implementation:** `core/ocr/TextRecognizer` + `TextCapture`/`RecognizedText`
+types; production adapter `inference/ocr/MlKitTextRecognizer` (ADR-006 latin
+pack). Lifecycle via `OcrLifecycle` (lazy load, 30 s idle unload OR-002.7).
+Feature calls `TextReadingService` / `ObjectSummaryService` ports; app wires
+`AssistanceModesCoordinator`.
+
 ### 11.3 Model manifest
 
 Each model release shall include a manifest:

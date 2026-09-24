@@ -233,5 +233,30 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/run_ocr_benchmark_button"
+            style="@style/VisionRT.Button.Large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:contentDescription="@string/settings_run_ocr_benchmark"
+            android:text="@string/settings_run_ocr_benchmark" />
+
+        <TextView
+            android:id="@+id/ocr_benchmark_desc"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_run_ocr_benchmark_desc" />
+
+        <TextView
+            android:id="@+id/ocr_benchmark_result"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="" />
     </LinearLayout>
 </ScrollView>

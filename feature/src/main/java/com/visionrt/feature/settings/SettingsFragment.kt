@@ -80,6 +80,10 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             runDetectorBenchmark()
         }
 
+        taps.attach(binding.runOcrBenchmarkButton, viewLifecycleOwner.lifecycleScope) {
+            runOcrBenchmark()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             voice.narrate(
                 ScreenNarrator.describe(
@@ -260,6 +264,41 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             )
             binding.benchmarkResult.text = message
             AnnouncementUtil.announce(binding.benchmarkResult, message)
+            voice.speakNow(message)
+        }
+    }
+
+    private fun runOcrBenchmark() {
+        val scope = viewLifecycleOwner.lifecycleScope
+        val running = getString(R.string.settings_ocr_benchmark_running)
+        binding.ocrBenchmarkResult.text = running
+        binding.runOcrBenchmarkButton.isEnabled = false
+        AnnouncementUtil.announce(binding.runOcrBenchmarkButton, running)
+        scope.launch {
+            voice.speakNow(running)
+            val result = diagnostics.runOcrBenchmark()
+            binding.runOcrBenchmarkButton.isEnabled = true
+            val message = result.fold(
+                onSuccess = { s ->
+                    getString(
+                        if (s.withinLatencyBudget()) {
+                            R.string.settings_ocr_benchmark_done
+                        } else {
+                            R.string.settings_ocr_benchmark_over_budget
+                        },
+                        fmtMs(s.p50Ms),
+                        fmtMs(s.p95Ms),
+                    )
+                },
+                onFailure = { t ->
+                    getString(
+                        R.string.settings_ocr_benchmark_failed,
+                        t.message ?: getString(R.string.settings_benchmark_failed_generic),
+                    )
+                },
+            )
+            binding.ocrBenchmarkResult.text = message
+            AnnouncementUtil.announce(binding.ocrBenchmarkResult, message)
             voice.speakNow(message)
         }
     }

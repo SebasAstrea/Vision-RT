@@ -94,6 +94,29 @@
     <string name="settings_benchmark_over_budget">Referencia terminada. Mediana %1$s milisegundos, P95 %2$s milisegundos, P99 %3$s milisegundos. Por encima del presupuesto de 450 milisegundos.</string>
     <string name="settings_benchmark_failed">La referencia falló: %1$s</string>
     <string name="settings_benchmark_failed_generic">error desconocido</string>
+    <string name="settings_run_ocr_benchmark">Ejecutar referencia de OCR</string>
+    <string name="settings_run_ocr_benchmark_desc">Mide la latencia de reconocimiento de texto en este dispositivo. Detén la asistencia primero. No se registra el texto reconocido.</string>
+    <string name="settings_ocr_benchmark_running">Ejecutando la referencia de OCR. Puede tardar unos minutos.</string>
+    <string name="settings_ocr_benchmark_done">OCR terminado. Mediana %1$s milisegundos, P95 %2$s milisegundos. Dentro del presupuesto de 8 segundos.</string>
+    <string name="settings_ocr_benchmark_over_budget">OCR terminado. Mediana %1$s milisegundos, P95 %2$s milisegundos. Por encima del presupuesto de 8 segundos.</string>
+    <string name="settings_ocr_benchmark_failed">La referencia de OCR falló: %1$s</string>
+
+    <!-- Object summary (FR-008) -->
+    <string name="object_summary_running">Describiendo la vista actual.</string>
+    <string name="object_summary_failed">No se pudo describir la escena. Inténtalo de nuevo.</string>
+
+    <!-- Text reading (FR-009) -->
+    <string name="ocr_status_idle">Apunta la cámara al texto y luego inicia la lectura.</string>
+    <string name="ocr_start">Leer texto</string>
+    <string name="ocr_repeat">Repetir</string>
+    <string name="ocr_next">Siguiente bloque</string>
+    <string name="ocr_stop">Detener lectura</string>
+    <string name="ocr_running">Leyendo texto. Puede tardar unos segundos.</string>
+    <string name="ocr_block_loaded">%1$d bloques de texto cargados.</string>
+    <string name="ocr_stopped">Lectura detenida.</string>
+    <string name="ocr_end">Fin del texto.</string>
+    <string name="ocr_unclear">El texto no es claro. Acércate o mejora la luz.</string>
+    <string name="ocr_not_reading">No hay texto cargado. Toca Leer texto primero.</string>
 
     <!-- Screen narration and tap confirmation (UX-001, FR-010) -->
     <string name="narrator_from_top">De la parte superior de la pantalla hacia abajo:</string>

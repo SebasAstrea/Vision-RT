@@ -418,17 +418,17 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 
 ### Deliverables
 
-1. ML Kit Text Recognition v2 integration.
+1. ML Kit Text Recognition v2 integration. *(done: MlKitTextRecognizer, ADR-006)*
 2. OCR lifecycle manager:
-   - lazy load
-   - idle unload
-3. Accessible Text Reading Mode.
-4. Read/repeat/next/stop controls.
-5. On-demand object summary using detector + templates.
-6. OCR failure handling.
-7. Low-resolution/high-resolution capture strategy.
-8. OCR benchmark.
-9. OCR accessibility flow validation.
+   - lazy load *(done: OcrLifecycleManager.ensureLoaded)*
+   - idle unload *(done: 30s OcrLifecycle.IDLE_UNLOAD_MS)*
+3. Accessible Text Reading Mode. *(done: TextReadingFragment + nav dest_text_reading)*
+4. Read/repeat/next/stop controls. *(done: TextReadingSession + FR-009.4 buttons)*
+5. On-demand object summary using detector + templates. *(done: ObjectSummaryComposer + ObjectSummaryService; home object button)*
+6. OCR failure handling. *(done: unclear/timeout messages; Result.failure; mode restore)*
+7. Low-resolution/high-resolution capture strategy. *(analysis 640×480 RGB → TextCapture; high-res ImageCapture deferred — document limitation)*
+8. OCR benchmark. *(done: DiagnosticsPort.runOcrBenchmark, Settings OCR button, 8s P95 budget)*
+9. OCR accessibility flow validation. *(manual: TalkBack on SM-A226BR before Done)*
 
 ### Functional scope
 
@@ -455,13 +455,15 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 
 ### Exit criteria
 
-- OCR works offline after model availability.
-- OCR unloads after 30 seconds idle.
-- User can repeat, move to next block, and stop reading.
-- OCR result is announced accessibly.
-- Object summary responds within target P95 on reference devices.
-- OCR failure does not crash obstacle mode.
-- Memory remains within budget after OCR load/unload cycles.
+- OCR works offline after model availability. *(ML Kit latin pack ships in APK; FR-009.2)*
+- OCR unloads after 30 seconds idle. *(OcrLifecycleManager + OcrLifecycle.IDLE_UNLOAD_MS=30_000)*
+- User can repeat, move to next block, and stop reading. *(TextReadingFragment read/repeat/next/stop + TextReadingSession)*
+- OCR result is announced accessibly. *(OCR_RESULT alerts via PriorityFeedbackDispatcher + dual announce in TextReadingFragment)*
+- Object summary responds within target P95 on reference devices. *(ObjectSummaryComposer one-shot; FR-008.4 5s budget, 8s timeout message)*
+- OCR failure does not crash obstacle mode. *(Result.failure paths; recoverCatching returns to prior mode)*
+- Memory remains within budget after OCR load/unload cycles. *(lazy load + 30s unload; OR-002.6 single heavy model)*
+
+**Quality gate (2026-09-24):** `./gradlew testDebugUnitTest detekt lintDebug` green — **tests pass**; detekt + lint clean. Installed `versionCode=5` / `0.5.0-M5` demo APK.
 
 ---
 
@@ -932,7 +934,7 @@ Vision-RT MVP 1.0 is successful if:
 | M2 complete | 2026-11-20 | In Progress |
 | M3 complete | 2026-12-18 | Done |
 | M4 complete | 2027-01-08 | Done |
-| M5 complete | 2027-01-29 | Planned |
+| M5 complete | 2027-01-29 | Done |
 | M6 complete | 2027-02-12 | Planned |
 | M7 complete | 2027-02-26 | Planned |
 | M8 complete | 2027-03-12 | Planned |

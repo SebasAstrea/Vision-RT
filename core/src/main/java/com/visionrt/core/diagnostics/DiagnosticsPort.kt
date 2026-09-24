@@ -23,6 +23,28 @@ data class DetectorBenchmarkSummary(
 }
 
 /**
+ * OCR end-to-end benchmark summary (M5 deliverable 8 / FR-009.5).
+ * Budget is the FR-009.5 P95 ≤ 8000 ms on a standard single-page capture.
+ */
+data class OcrBenchmarkSummary(
+    val device: String,
+    val subject: String,
+    val n: Int,
+    val p50Ms: Double,
+    val p95Ms: Double,
+    val p99Ms: Double,
+    val maxMs: Double,
+    val meanMs: Double,
+    val blocksFound: Int,
+) {
+    fun withinLatencyBudget(): Boolean = p95Ms <= OCR_P95_BUDGET_MS
+
+    companion object {
+        const val OCR_P95_BUDGET_MS = 8_000.0
+    }
+}
+
+/**
  * App-facing diagnostics port (feature → core only; benchmark/inference stay
  * behind the app module — ARCHITECTURE §7.1 allowlist).
  */
@@ -32,4 +54,10 @@ interface DiagnosticsPort {
      * Fails if assistance is active or the model cannot load.
      */
     suspend fun runDetectorBenchmark(): Result<DetectorBenchmarkSummary>
+
+    /**
+     * Runs a one-shot OCR benchmark (FR-009.5). Refuses while assistance or
+     * text reading is active so only one heavy model session exists.
+     */
+    suspend fun runOcrBenchmark(): Result<OcrBenchmarkSummary>
 }

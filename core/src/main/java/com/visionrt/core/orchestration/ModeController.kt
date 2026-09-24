@@ -44,6 +44,10 @@ class ModeController(
     suspend fun returnToObstacleAssistance(): Boolean =
         transition(OrchestrationState.OBSTACLE_ASSISTANCE_ACTIVE)
 
+    /** True when a return to continuous obstacle assistance is legal. */
+    fun canReturnToObstacle(): Boolean =
+        OrchestrationState.canTransition(current, OrchestrationState.OBSTACLE_ASSISTANCE_ACTIVE)
+
     suspend fun degrade(): Boolean = transition(OrchestrationState.DEGRADED)
 
     /** Convenience: stop from any active state, then return to idle. */

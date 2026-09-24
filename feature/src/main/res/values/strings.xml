@@ -94,6 +94,29 @@
     <string name="settings_benchmark_over_budget">Benchmark finished. Median %1$s milliseconds, P95 %2$s milliseconds, P99 %3$s milliseconds. Above the 450 millisecond budget.</string>
     <string name="settings_benchmark_failed">Benchmark failed: %1$s</string>
     <string name="settings_benchmark_failed_generic">unknown error</string>
+    <string name="settings_run_ocr_benchmark">Run OCR benchmark</string>
+    <string name="settings_run_ocr_benchmark_desc">Measures text recognition latency on this device. Stop assistance first. Does not log recognized text.</string>
+    <string name="settings_ocr_benchmark_running">Running OCR benchmark. This can take about a minute.</string>
+    <string name="settings_ocr_benchmark_done">OCR finished. Median %1$s milliseconds, P95 %2$s milliseconds. Within the 8 second budget.</string>
+    <string name="settings_ocr_benchmark_over_budget">OCR finished. Median %1$s milliseconds, P95 %2$s milliseconds. Above the 8 second budget.</string>
+    <string name="settings_ocr_benchmark_failed">OCR benchmark failed: %1$s</string>
+
+    <!-- Object summary (FR-008) -->
+    <string name="object_summary_running">Describing the current view.</string>
+    <string name="object_summary_failed">Could not describe the scene. Try again.</string>
+
+    <!-- Text reading (FR-009) -->
+    <string name="ocr_status_idle">Point the camera at text, then start reading.</string>
+    <string name="ocr_start">Read text</string>
+    <string name="ocr_repeat">Repeat</string>
+    <string name="ocr_next">Next block</string>
+    <string name="ocr_stop">Stop reading</string>
+    <string name="ocr_running">Reading text. This can take a few seconds.</string>
+    <string name="ocr_block_loaded">%1$d text blocks loaded.</string>
+    <string name="ocr_stopped">Reading stopped.</string>
+    <string name="ocr_end">End of text.</string>
+    <string name="ocr_unclear">Text is not clear. Try closer or better light.</string>
+    <string name="ocr_not_reading">No text loaded. Tap Read text first.</string>
 
     <!-- Screen narration and tap confirmation (UX-001, FR-010) -->
     <string name="narrator_from_top">From the top of the screen to the bottom:</string>

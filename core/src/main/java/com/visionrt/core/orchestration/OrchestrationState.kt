@@ -29,7 +29,10 @@ enum class OrchestrationState {
 
     companion object {
         private val legalTransitions: Map<OrchestrationState, Set<OrchestrationState>> = mapOf(
-            IDLE to setOf(STARTING),
+            // On-demand modes may start from IDLE without continuous obstacle
+            // assistance (FR-008 / FR-009): camera + model load inside the
+            // mode coordinator and unload when the session stops.
+            IDLE to setOf(STARTING, OBJECT_QUERY_ACTIVE, TEXT_READING_ACTIVE),
             STARTING to setOf(OBSTACLE_ASSISTANCE_ACTIVE, ERROR, STOPPING),
             OBSTACLE_ASSISTANCE_ACTIVE to setOf(
                 OBJECT_QUERY_ACTIVE,
@@ -38,8 +41,18 @@ enum class OrchestrationState {
                 ERROR,
                 STOPPING,
             ),
-            OBJECT_QUERY_ACTIVE to setOf(OBSTACLE_ASSISTANCE_ACTIVE, STOPPING, ERROR),
-            TEXT_READING_ACTIVE to setOf(OBSTACLE_ASSISTANCE_ACTIVE, STOPPING, ERROR),
+            OBJECT_QUERY_ACTIVE to setOf(
+                OBSTACLE_ASSISTANCE_ACTIVE,
+                TEXT_READING_ACTIVE,
+                STOPPING,
+                ERROR,
+            ),
+            TEXT_READING_ACTIVE to setOf(
+                OBSTACLE_ASSISTANCE_ACTIVE,
+                OBJECT_QUERY_ACTIVE,
+                STOPPING,
+                ERROR,
+            ),
             DEGRADED to setOf(OBSTACLE_ASSISTANCE_ACTIVE, ERROR, STOPPING),
             ERROR to setOf(STOPPING),
             STOPPING to setOf(IDLE),
