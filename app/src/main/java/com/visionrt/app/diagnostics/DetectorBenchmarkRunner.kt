@@ -3,11 +3,17 @@ package com.visionrt.app.diagnostics
 import android.content.Context
 import com.visionrt.benchmark.DeviceRegistry
 import com.visionrt.benchmark.detector.DetectorBenchmark
+import com.visionrt.app.memory.AndroidMemoryMonitor
+import com.visionrt.app.resource.AndroidResourceSignals
+import com.visionrt.app.resource.ResourceManager
 import com.visionrt.core.assistance.AssistanceController
 import com.visionrt.core.common.SafeLogger
 import com.visionrt.core.diagnostics.DetectorBenchmarkSummary
 import com.visionrt.core.diagnostics.DiagnosticsPort
+import com.visionrt.core.diagnostics.DiagnosticsReport
+import com.visionrt.core.diagnostics.DiagnosticsSnapshot
 import com.visionrt.core.diagnostics.OcrBenchmarkSummary
+import com.visionrt.core.domain.DeviceProfileProvider
 import com.visionrt.core.ocr.OcrLifecycle
 import com.visionrt.core.ocr.TextCapture
 import com.visionrt.core.ocr.TextRecognizer
@@ -32,17 +38,31 @@ import kotlinx.coroutines.withContext
  *
  * M5: also runs [runOcrBenchmark] against ML Kit on a synthetic page
  * (FR-009.5, budget 8 s P95).
+ *
+ * M7: [collectDiagnosticsSnapshot] for ARCHITECTURE §21.3 (device matrix /
+ * multi-metric diagnostics export).
  */
 @Singleton
+@Suppress("LongParameterList") // M7 §21.3: profile + resource + memory deps for snapshot export
 class DetectorBenchmarkRunner @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val detector: ObjectDetector,
     private val assistanceController: AssistanceController,
     private val textRecognizer: TextRecognizer,
     private val ocrLifecycle: OcrLifecycle,
+    private val deviceProfileProvider: DeviceProfileProvider,
+    private val resourceSignals: AndroidResourceSignals,
+    private val memoryMonitor: AndroidMemoryMonitor,
+    private val resourceManager: ResourceManager,
 ) : DiagnosticsPort {
 
     private val lock = Mutex()
+
+    @Volatile
+    private var lastDetector: DetectorBenchmarkSummary? = null
+
+    @Volatile
+    private var lastOcr: OcrBenchmarkSummary? = null
 
     override suspend fun runDetectorBenchmark(): Result<DetectorBenchmarkSummary> =
         withContext(Dispatchers.Default) {
@@ -76,6 +96,7 @@ class DetectorBenchmarkRunner @Inject constructor(
                             maxMs = report.latencyMs.maxMs,
                             meanMs = report.latencyMs.meanMs,
                         )
+                        lastDetector = summary
                         logReport(summary)
                         summary
                     } finally {
@@ -123,6 +144,7 @@ class DetectorBenchmarkRunner @Inject constructor(
                             meanMs = report.latencyMs.meanMs,
                             blocksFound = lastBlocks,
                         )
+                        lastOcr = summary
                         logOcrReport(summary)
                         summary
                     } finally {
@@ -130,6 +152,48 @@ class DetectorBenchmarkRunner @Inject constructor(
                             ocrLifecycle.unload()
                         }
                     }
+                }
+            }
+        }
+
+    override suspend fun collectDiagnosticsSnapshot(): Result<DiagnosticsSnapshot> =
+        withContext(Dispatchers.Default) {
+            lock.withLock {
+                runCatching {
+                    val peak = memoryMonitor.budget.peakMb
+                    val p95 = resourceManager.diagnosticsLatencyP95Ms()
+                    val signals = resourceSignals.sample(
+                        memoryPeakMb = peak,
+                        latencyP95Ms = p95,
+                    )
+                    val manifest = loadManifest()
+                    val model = DeviceRegistry.KNOWN.firstOrNull {
+                        it.model == android.os.Build.MODEL
+                    } != null
+                    val snapshot = DiagnosticsSnapshot(
+                        timestampMs = System.currentTimeMillis(),
+                        deviceModel = android.os.Build.MODEL,
+                        deviceHardware = android.os.Build.HARDWARE,
+                        deviceInRegistry = model,
+                        deviceProfile = deviceProfileProvider.profile.name,
+                        modelId = manifest.modelId,
+                        modelVersion = manifest.version,
+                        quantization = manifest.quantization,
+                        degradationLevel = resourceManager.governor.level.name,
+                        degradationCause = resourceManager.governor.lastCause.name,
+                        thermalStatus = signals.thermalStatus,
+                        batteryPercent = signals.batteryPercent,
+                        batterySaverActive = signals.batterySaverActive,
+                        memoryPeakMb = peak,
+                        latencyP95Ms = p95,
+                        frameIntervalMs = resourceManager.governor.frameIntervalMs(),
+                        detector = lastDetector,
+                        ocr = lastOcr,
+                    )
+                    SafeLogger.i(TAG, DiagnosticsReport.format(snapshot))
+                    SafeLogger.metric(TAG, "memory_peak_mb", peak, "MB")
+                    SafeLogger.metric(TAG, "session_p95_ms", p95, "ms")
+                    snapshot
                 }
             }
         }

@@ -60,4 +60,11 @@ interface DiagnosticsPort {
      * text reading is active so only one heavy model session exists.
      */
     suspend fun runOcrBenchmark(): Result<OcrBenchmarkSummary>
+
+    /**
+     * Captures the M7 multi-metric diagnostics snapshot (ARCHITECTURE §21.3):
+     * device profile, model metadata, degradation/memory/thermal state and
+     * the last detector/OCR benchmark results if present. Payload-free.
+     */
+    suspend fun collectDiagnosticsSnapshot(): Result<DiagnosticsSnapshot>
 }

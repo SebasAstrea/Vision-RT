@@ -45,3 +45,6 @@ __pycache__/
 # Local model export scratch (assets under app/src/main/assets are committed)
 /yolov8n.*
 /runs/
+
+# M7 device report dumps (summaries live in docs/M7_REPORTS.md)
+/tools/reports/

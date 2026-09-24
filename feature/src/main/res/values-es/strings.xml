@@ -100,6 +100,11 @@
     <string name="settings_ocr_benchmark_done">OCR terminado. Mediana %1$s milisegundos, P95 %2$s milisegundos. Dentro del presupuesto de 8 segundos.</string>
     <string name="settings_ocr_benchmark_over_budget">OCR terminado. Mediana %1$s milisegundos, P95 %2$s milisegundos. Por encima del presupuesto de 8 segundos.</string>
     <string name="settings_ocr_benchmark_failed">La referencia de OCR falló: %1$s</string>
+    <string name="settings_export_diagnostics">Exportar informe de diagnóstico</string>
+    <string name="settings_export_diagnostics_desc">Captura el perfil del dispositivo, los metadatos del modelo, memoria, térmica y estado de degradación. Sin imágenes ni texto reconocido. El informe completo se escribe en logcat.</string>
+    <string name="settings_export_diagnostics_running">Capturando el informe de diagnóstico.</string>
+    <string name="settings_export_diagnostics_done">Diagnóstico exportado. Perfil %1$s, nivel %2$s, memoria pico %3$s megabytes. El informe completo está en logcat.</string>
+    <string name="settings_export_diagnostics_failed">La exportación del diagnóstico falló: %1$s</string>
 
     <!-- Object summary (FR-008) -->
     <string name="object_summary_running">Describiendo la vista actual.</string>

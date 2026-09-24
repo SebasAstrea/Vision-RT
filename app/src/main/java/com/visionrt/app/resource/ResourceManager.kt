@@ -142,6 +142,9 @@ class ResourceManager @Inject constructor(
             "p95Ms=${latencyP95Ms()} intervalMs=${governor.frameIntervalMs()}"
     }
 
+    /** Session inference P95 for M7 diagnostics export (§21.3); 0 when empty. */
+    fun diagnosticsLatencyP95Ms(): Double = latencyP95Ms()
+
     private companion object {
         const val TAG = "ResourceManager"
         const val MAX_LATENCY_SAMPLES = 60

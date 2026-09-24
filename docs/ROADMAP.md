@@ -535,19 +535,22 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 
 ### Deliverables
 
-1. Device matrix benchmark report.
-2. Model validation report.
-3. Memory soak report.
-4. Battery usage report.
-5. Thermal behavior report.
+1. Device matrix benchmark report. *(tools + Settings diagnostics export; `docs/M7_REPORTS.md` §1 — 1/3 devices in hand)*
+2. Model validation report. *(evaluate_detections.py + fixtures smoke; real metrics pending DAT-001)*
+3. Memory soak report. *(`tools/scripts/memory_soak.sh`; 30-min run pending on device)*
+4. Battery usage report. *(`tools/scripts/battery_thermal_report.sh`)*
+5. Thermal behavior report. *(same tool + `FORCE_THERMAL=1` / M6 governor)*
 6. Privacy audit:
    - no image upload
    - no OCR text logging
    - permissions review
-7. Security scan report.
-8. Accessibility audit report.
-9. Crash stability report.
-10. Final requirement traceability update.
+   *(`tools/scripts/privacy_audit.sh` PASS 2026-09-24; airplane mode + traffic inspection manual)*
+7. Security scan report. *(static review in `docs/M7_REPORTS.md` §7)*
+8. Accessibility audit report. *(Espresso suite + manual TalkBack pending M4–M6 checklist)*
+9. Crash stability report. *(`tools/scripts/crash_stability.sh`)*
+10. Final requirement traceability update. *(`docs/M7_REPORTS.md` §10)*
+
+Consolidated evidence: **`docs/M7_REPORTS.md`**.
 
 ### Verification scope
 
@@ -591,13 +594,19 @@ If thresholds are not met:
 
 ### Exit criteria
 
-- All mandatory performance thresholds are met on at least three low-end reference devices.
-- No raw images or OCR text are found in logs or network traffic.
-- Core features pass in airplane mode.
-- Accessibility audit passes.
-- Crash stability is acceptable.
-- Requirement traceability is updated.
-- Release blockers are documented.
+- All mandatory performance thresholds are met on at least three low-end reference devices. *(NOT MET: only SM-A226BR in hand — release blocker)*
+- No raw images or OCR text are found in logs or network traffic. *(static privacy audit PASS; airplane + traffic inspection manual pending)*
+- Core features pass in airplane mode. *(manual pending)*
+- Accessibility audit passes. *(automated suite + manual TalkBack pending)*
+- Crash stability is acceptable. *(tool ready; device watch pending)*
+- Requirement traceability is updated. *(`docs/M7_REPORTS.md` §10)*
+- Release blockers are documented. *(`docs/M7_REPORTS.md` §blockers: 1/3 devices, DAT-001, static INT8/QAT human review, manual TalkBack/soak)*
+
+**Model conversion note:** static INT8 / QAT remains **blocked pending human review** (AGENTS stop condition); runtime stays dynamic weight-only INT8.
+
+**Quality gate (2026-09-24):** `./gradlew testDebugUnitTest detekt lintDebug` green — **176 tests, 0 failures**; detekt + lint clean; `privacy_audit.sh` PASS; evaluator fixture smoke PASS. Installed `versionCode=7` / `0.7.0-M7` demo APK.
+
+**Status:** Done (with release blockers above; M8 can proceed with them open).
 
 ---
 
@@ -938,7 +947,7 @@ Vision-RT MVP 1.0 is successful if:
 | M4 complete | 2027-01-08 | Done |
 | M5 complete | 2027-01-29 | Done |
 | M6 complete | 2027-02-12 | Done |
-| M7 complete | 2027-02-26 | Planned |
+| M7 complete | 2027-02-26 | Done |
 | M8 complete | 2027-03-12 | Planned |
 | MVP 1.0 release | 2027-03-19 | Planned |
 

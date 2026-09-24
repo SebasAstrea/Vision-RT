@@ -11,16 +11,17 @@ weak hardware — never only on a studio device.
 
 ## Procurement list (3 units)
 
-| Tier | Device (recommended) | SoC | RAM | Android | Why it is on the list |
-|---|---|---|---|---|---|
-| Very low | Samsung Galaxy A14 5G | MediaTek (MT6833 Dimensity 700) | 4 GB | 13/14 (near-stock OneUI Core) | The 4 GB entry point; TFT-like general-purpose weak GPU-less real-world budget phone. |
+| Tier | Device (recommended) | SoC | RAM | Android | Why it is on the list | Status |
+|---|---|---|---|---|---|---|
+| Very low | Samsung Galaxy A14 5G | MediaTek (MT6833 Dimensity 700) | 4 GB | 13/14 (near-stock OneUI Core) | The 4 GB entry point; TFT-like general-purpose weak GPU-less real-world budget phone. | **In hand as SM-A226BR (Galaxy A22 5G, same Dimensity 700 class) — QA instrument #1** |
+| Low | Moto G Power 2022 (XT2217) | MediaTek Helio G37 | 4 GB | 11/12 (near-stock) | Stock-OS reference; weakest GPU/CPU in the matrix; maximum thermal throttling realism. | Not in hand (M7 blocker) |
+| Low | Redmi 9A / POCO relative | MediaTek Helio G25 | 2–4 GB | 10+ | Alternative: cheapest retail unit; guards against single-vendor bias. | Not in hand (M7 blocker) |
 
-> **In hand (QA instrument #1):** Samsung **SM-A226BR** (Galaxy A22 5G) — MediaTek
+> **QA instrument #1 (in hand):** Samsung **SM-A226BR** (Galaxy A22 5G) — MediaTek
 > Dimensity 700 (MT6833), 4 GB RAM (~3.5 GiB usable), Android 13 (API 33),
 > arm64-v8a, connected via USB. Registered in `DeviceRegistry.KNOWN`. It is the
 > reference low-end device for all smoke tests and benchmark replays.
-| Low | Moto G Power 2022 (XT2217) | MediaTek Helio G37 | 4 GB | 11/12 (near-stock) | Stock-OS reference; weakest GPU/CPU in the matrix; maximum thermal throttling realism. |
-| Low | Redmi 9A / POCO relative | MediaTek Helio G25 | 2–4 GB | 10+ | Alternative: cheapest retail unit; guards against single-vendor bias. |
+> M7 exit still requires **three** low-end devices (`docs/M7_REPORTS.md` §blockers).
 
 > Fallback if a vendor is unavailable: a mid-range Samsung A15/A24 or a cheap
 > Qualcomm Snapdragon 4 Gen 1 device. At least one unit **must be a MediaTek** and

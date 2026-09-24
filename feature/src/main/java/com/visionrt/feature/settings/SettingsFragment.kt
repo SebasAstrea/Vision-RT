@@ -84,6 +84,10 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             runOcrBenchmark()
         }
 
+        taps.attach(binding.exportDiagnosticsButton, viewLifecycleOwner.lifecycleScope) {
+            exportDiagnostics()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             voice.narrate(
                 ScreenNarrator.describe(
@@ -299,6 +303,38 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             )
             binding.ocrBenchmarkResult.text = message
             AnnouncementUtil.announce(binding.ocrBenchmarkResult, message)
+            voice.speakNow(message)
+        }
+    }
+
+    private fun exportDiagnostics() {
+        val scope = viewLifecycleOwner.lifecycleScope
+        val running = getString(R.string.settings_export_diagnostics_running)
+        binding.diagnosticsExportResult.text = running
+        binding.exportDiagnosticsButton.isEnabled = false
+        AnnouncementUtil.announce(binding.exportDiagnosticsButton, running)
+        scope.launch {
+            voice.speakNow(running)
+            val result = diagnostics.collectDiagnosticsSnapshot()
+            binding.exportDiagnosticsButton.isEnabled = true
+            val message = result.fold(
+                onSuccess = { s ->
+                    getString(
+                        R.string.settings_export_diagnostics_done,
+                        s.deviceProfile,
+                        s.degradationLevel,
+                        fmtMs(s.memoryPeakMb),
+                    )
+                },
+                onFailure = { t ->
+                    getString(
+                        R.string.settings_export_diagnostics_failed,
+                        t.message ?: getString(R.string.settings_benchmark_failed_generic),
+                    )
+                },
+            )
+            binding.diagnosticsExportResult.text = message
+            AnnouncementUtil.announce(binding.diagnosticsExportResult, message)
             voice.speakNow(message)
         }
     }

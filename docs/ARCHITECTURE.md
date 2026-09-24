@@ -1318,6 +1318,13 @@ It should show:
 
 This mode must remain accessible.
 
+**M7 implementation (2026-09-24):** Settings exposes one-shot detector and OCR
+benchmarks plus **Export diagnostics report** (`DiagnosticsPort.collectDiagnosticsSnapshot`
+→ `DiagnosticsSnapshot` / `DiagnosticsReport.format`). Output is payload-free
+device/model/memory/thermal/degradation metrics only (no frames, OCR text, or PII).
+Static privacy audit: `tools/scripts/privacy_audit.sh`. Consolidated M7 evidence:
+`docs/M7_REPORTS.md`.
+
 ---
 
 ## 22. Testing Architecture

@@ -100,6 +100,11 @@
     <string name="settings_ocr_benchmark_done">OCR finished. Median %1$s milliseconds, P95 %2$s milliseconds. Within the 8 second budget.</string>
     <string name="settings_ocr_benchmark_over_budget">OCR finished. Median %1$s milliseconds, P95 %2$s milliseconds. Above the 8 second budget.</string>
     <string name="settings_ocr_benchmark_failed">OCR benchmark failed: %1$s</string>
+    <string name="settings_export_diagnostics">Export diagnostics report</string>
+    <string name="settings_export_diagnostics_desc">Captures device profile, model metadata, memory, thermal, and degradation state. No images or recognized text. Full report is written to logcat.</string>
+    <string name="settings_export_diagnostics_running">Capturing diagnostics report.</string>
+    <string name="settings_export_diagnostics_done">Diagnostics exported. Profile %1$s, level %2$s, peak memory %3$s megabytes. Full report is in logcat.</string>
+    <string name="settings_export_diagnostics_failed">Diagnostics export failed: %1$s</string>
 
     <!-- Object summary (FR-008) -->
     <string name="object_summary_running">Describing the current view.</string>
