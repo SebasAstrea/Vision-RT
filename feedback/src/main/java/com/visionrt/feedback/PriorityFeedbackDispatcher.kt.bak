@@ -11,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * User-facing feedback knobs the dispatcher must respect on every emit
@@ -60,13 +59,6 @@ class PriorityFeedbackDispatcher(
     private val pending = ArrayDeque<Alert>()
     private var workerActive = false
 
-    /**
-     * Priority of the alert currently being spoken, or null when idle.
-     * Used by [com.visionrt.core.orchestration.AlertPipeline] to avoid
-     * interrupting an in-flight CRITICAL with another CRITICAL.
-     */
-    private val inFlightPriority = AtomicReference<AlertPriority?>(null)
-
     private val control = Channel<Control>(Channel.UNLIMITED)
 
     init {
@@ -111,18 +103,12 @@ class PriorityFeedbackDispatcher(
         if (current.speechMuted) return
 
         queueMutex.withLock {
-            val currentInFlight = inFlightPriority.get()
-            if (alert.priority == AlertPriority.CRITICAL_OBSTACLE &&
-                (currentInFlight == null || alert.priority.ordinal > currentInFlight.ordinal)
-            ) {
-                // Preempt only when strictly more severe than what is in flight.
-                // Same-priority CRITICALs queue behind the current utterance so
-                // phrases are not cut mid-word (FR-006.3 + UX).
+            if (alert.priority == AlertPriority.CRITICAL_OBSTACLE) {
+                // Preempt: drop weaker pending speech (FR-006.3).
                 pending.removeAll { it.priority.ordinal > AlertPriority.CRITICAL_OBSTACLE.ordinal }
                 speaker.stop()
             }
             insertByPriority(alert)
-            inFlightPriority.set(alert.priority)
             if (!workerActive) {
                 workerActive = true
                 control.trySend(Control.Pump)
@@ -136,7 +122,6 @@ class PriorityFeedbackDispatcher(
                 pending.removeAll { it.priority.ordinal >= priority.ordinal }
             }
             speaker.stop()
-            inFlightPriority.set(null)
         }
     }
 
@@ -148,7 +133,6 @@ class PriorityFeedbackDispatcher(
         speaker.stop()
         haptics.cancel()
         earcons.stop()
-        inFlightPriority.set(null)
     }
 
     private suspend fun currentSettings(): FeedbackSettings = settingsMutex.withLock { settings }
@@ -197,10 +181,6 @@ class PriorityFeedbackDispatcher(
         val ms = ((words * MS_PER_WORD) / rateSteps).coerceAtLeast(MIN_UTTERANCE_MS)
         delay(ms)
     }
-
-    override fun currentPriority(): AlertPriority? = inFlightPriority.get()
-
-    override fun isActive(): Boolean = inFlightPriority.get() != null
 
     private sealed interface Control {
         data object Pump : Control

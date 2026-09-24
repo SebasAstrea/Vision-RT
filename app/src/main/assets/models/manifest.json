@@ -1,10 +1,10 @@
 {
-  "model_id": "yolov8n-accessibility",
-  "version": "1.0.0",
+  "model_id": "yolo11n-accessibility",
+  "version": "2.1.0",
   "runtime": "litert",
   "quantization": "int8",
-  "input_width": 320,
-  "input_height": 320,
+  "input_width": 640,
+  "input_height": 640,
   "classes": [
     "person",
     "bicycle",
@@ -90,6 +90,6 @@
   "confidence_threshold": 0.35,
   "nms_iou_threshold": 0.45,
   "max_detections": 10,
-  "checksum": "sha256:793eac3c43f244f96ed66c32b189f874d5914ea85b35fc11172e0004e9ec5ada",
-  "model_asset": "yolov8n_320_int8.tflite"
+  "checksum": "sha256:3d1e489fe1ad2e2071dc3422a6ddb6b482049ed4b44195c92254aae9c991bcd9",
+  "model_asset": "yolo11n_640_int8.tflite"
 }

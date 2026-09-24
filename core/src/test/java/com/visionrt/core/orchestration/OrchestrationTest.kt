@@ -614,7 +614,7 @@ class OrchestrationIntegrationTest {
         )
         assertEquals(
             com.visionrt.core.domain.AlertPriority.OCR_RESULT,
-            feedback.currentPriority,
+            feedback.currentPriority(),
         )
 
         val person = FakeDetections.of("person", confidence = 0.90f)
@@ -626,7 +626,7 @@ class OrchestrationIntegrationTest {
         assertTrue(feedback.interrupts.isNotEmpty())
         assertEquals(
             com.visionrt.core.domain.AlertPriority.CRITICAL_OBSTACLE,
-            feedback.currentPriority,
+            feedback.currentPriority(),
         )
     }
 
