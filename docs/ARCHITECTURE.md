@@ -602,6 +602,14 @@ The governor monitors:
 8. Camera availability.
 9. Model loading state.
 
+**M6 implementation:** `core/resource/ResourceGovernor` maps pure
+`ResourceSignals` → `DegradationLevel` (Normal/Reduced/Minimal/Critical) with
+`HOLD_TICKS` hysteresis. App samples thermal/battery via
+`AndroidResourceSignals` (PowerManager + ACTION_BATTERY_CHANGED), memory peak
+via `MemoryBudgetMonitor`, and inference P95 via `ResourceManager`. Dynamic
+frame interval drives `ObstacleAssistanceCoordinator` (OR-005). Critical level
+transitions ModeController to DEGRADED (§8.2) and skips continuous detect.
+
 ### 9.3 Resource governor outputs
 
 The governor can:
@@ -614,6 +622,11 @@ The governor can:
 6. Notify the user.
 7. Pause non-essential telemetry.
 8. Force conservative alert thresholds.
+
+**M6 implementation note:** `ResourceGovernor.frameIntervalMs()` multiplies the
+DeviceProfile base by level (×1/×2/×4/×8, cap 2 s) and enforces battery-saver
+≥ 333 ms (3 FPS). `DegradationAnnouncer` emits localized STATUS alerts;
+`SafeLogger.w` logs every level/cause transition (diagnostics D8).
 
 ### 9.4 Degradation ladder
 

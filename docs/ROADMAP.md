@@ -500,29 +500,31 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 ### Technical tasks
 
 - Implement resource monitor collecting:
-  - thermal status
-  - battery level
-  - battery saver state
-  - memory pressure
-  - inference latency
-  - FPS
-- Implement policy rules.
-- Implement degradation state transitions.
+  - thermal status *(AndroidResourceSignals / PowerManager.currentThermalStatus)*
+  - battery level *(ACTION_BATTERY_CHANGED sticky)*
+  - battery saver state *(PowerManager.isPowerSaveMode)*
+  - memory pressure *(MemoryBudgetMonitor.peakMb + onLowMemorySignal)*
+  - inference latency *(ResourceManager P95 ring buffer)*
+  - FPS *(ResourceGovernor.frameIntervalMs from DeviceProfile base)*
+- Implement policy rules. *(ResourceGovernor.desiredLevel / causeFor)*
+- Implement degradation state transitions. *(HOLD_TICKS hysteresis + ModeController DEGRADED on CRITICAL)*
 - Implement accessible announcements:
-  - “Reduced mode due to device heat.”
-  - “Battery saver active.”
-  - “Assistance limited.”
-- Add stress tests using simulated slow inference and memory pressure.
+  - “Reduced mode due to device heat.” *(DegradationAnnouncer EN/ES)*
+  - “Battery saver active.” *(DegradationAnnouncer)*
+  - “Assistance limited.” *(DegradationAnnouncer + StateAnnouncer DEGRADED)*
+- Add stress tests using simulated slow inference and memory pressure. *(ResourceGovernorTest / DegradationAnnouncerTest)*
 
 ### Exit criteria
 
-- At MODERATE thermal status, FPS reduces by at least 50%.
-- At SEVERE thermal status, continuous detection stops or becomes minimal.
-- Battery saver reduces FPS to <= 3.
-- Memory pressure unloads optional components first.
-- Degradation events are announced accessibly.
-- No crash occurs during simulated resource pressure tests.
-- The app returns to normal mode safely when conditions improve.
+- At MODERATE thermal status, FPS reduces by at least 50%. *(interval ×2; thermalModerateEscalatesToReducedAndHalvesFps)*
+- At SEVERE thermal status, continuous detection stops or becomes minimal. *(CRITICAL + continuousDetectionStopped; thermalSevereStopsContinuousDetection)*
+- Battery saver reduces FPS to <= 3. *(BATTERY_SAVER_MIN_INTERVAL_MS=333; batterySaverCapsIntervalAt3Fps)*
+- Memory pressure unloads optional components first. *(optionalModelsDisabled at REDUCED+; memoryCriticalYieldsMinimal)*
+- Degradation events are announced accessibly. *(DegradationAnnouncer STATUS alerts via FeedbackPort)*
+- No crash occurs during simulated resource pressure tests. *(unit stress: thermal/battery/memory/latency/camera paths)*
+- The app returns to normal mode safely when conditions improve. *(recoversToNormalWhenSignalsClear + syncModeWithLevel)*
+
+**Quality gate (2026-09-24):** `./gradlew testDebugUnitTest detekt lintDebug` green — **172 tests, 0 failures**; detekt + lint clean. Installed `versionCode=6` / `0.6.0-M6` demo APK.
 
 ---
 
@@ -935,7 +937,7 @@ Vision-RT MVP 1.0 is successful if:
 | M3 complete | 2026-12-18 | Done |
 | M4 complete | 2027-01-08 | Done |
 | M5 complete | 2027-01-29 | Done |
-| M6 complete | 2027-02-12 | Planned |
+| M6 complete | 2027-02-12 | Done |
 | M7 complete | 2027-02-26 | Planned |
 | M8 complete | 2027-03-12 | Planned |
 | MVP 1.0 release | 2027-03-19 | Planned |

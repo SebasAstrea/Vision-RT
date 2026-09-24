@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.visionrt.app.memory.AndroidMemoryMonitor
+import com.visionrt.app.resource.ResourceManager
 import com.visionrt.core.assistance.AssistanceController
 import com.visionrt.core.common.SafeLogger
 import com.visionrt.core.domain.DeviceProfile
@@ -14,6 +15,7 @@ import com.visionrt.core.orchestration.AlertPipeline
 import com.visionrt.core.orchestration.DetectionSource
 import com.visionrt.core.orchestration.ModeController
 import com.visionrt.core.orchestration.OrchestrationState
+import com.visionrt.core.resource.DegradationLevel
 import com.visionrt.data.settings.SettingsRepository
 import com.visionrt.inference.manifest.ModelManifestJson
 import com.visionrt.inference.runtimeapi.ModelConfig
@@ -36,8 +38,9 @@ import kotlinx.coroutines.withContext
  * M3 obstacle-assistance wiring (app module, ARCHITECTURE §7.1.3).
  *
  * Camera permission must be granted before [start]. Frame interval follows the
- * device profile (OR-001.3c). Verbosity comes from user settings (FR-006.5).
- * PSS is sampled while active (OR-003).
+ * device profile (OR-001.3c) and the resource governor (OR-005/006/007).
+ * Verbosity comes from user settings (FR-006.5). PSS is sampled while active
+ * (OR-003).
  */
 @Singleton
 @Suppress("LongParameterList") // app-level wiring (ARCHITECTURE §7.1.3)
@@ -49,16 +52,18 @@ class ObstacleAssistanceCoordinator @Inject constructor(
     private val detectionSource: DetectionSource,
     private val deviceProfileProvider: DeviceProfileProvider,
     private val memoryMonitor: AndroidMemoryMonitor,
+    private val resourceManager: ResourceManager,
     private val settings: SettingsRepository,
     @param:ApplicationContext private val context: Context,
 ) : AssistanceController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var loopJob: Job? = null
-    private val frameIntervalMs: Long =
+    private val baseFrameIntervalMs: Long =
         DeviceProfileClassifier.frameIntervalMs(deviceProfileProvider.profile)
 
     val state: OrchestrationState get() = modeController.current
     val profile: DeviceProfile get() = deviceProfileProvider.profile
+    val degradationLevel: DegradationLevel get() = resourceManager.level.value
 
     override fun isActive(): Boolean =
         modeController.current == OrchestrationState.OBSTACLE_ASSISTANCE_ACTIVE
@@ -74,6 +79,7 @@ class ObstacleAssistanceCoordinator @Inject constructor(
         camera.bind(lifecycleOwner).getOrThrow()
         alertPipeline.resetPolicy()
         memoryMonitor.startSession()
+        resourceManager.onSessionStart()
 
         val ready = modeController.onReady()
         if (!ready) error("Could not enter OBSTACLE_ASSISTANCE_ACTIVE")
@@ -82,7 +88,7 @@ class ObstacleAssistanceCoordinator @Inject constructor(
         SafeLogger.i(
             TAG,
             "Obstacle assistance started profile=${deviceProfileProvider.profile.key} " +
-                "intervalMs=$frameIntervalMs",
+                "intervalMs=$baseFrameIntervalMs",
         )
     }
 
@@ -94,6 +100,7 @@ class ObstacleAssistanceCoordinator @Inject constructor(
         detector.unload()
         modeController.stopSession()
         memoryMonitor.stopSessionAndLog()
+        resourceManager.onSessionStop()
         SafeLogger.i(TAG, "Obstacle assistance stopped")
     }
 
@@ -116,15 +123,49 @@ class ObstacleAssistanceCoordinator @Inject constructor(
 
     private suspend fun inferenceLoop() {
         var lastMemorySampleMs = 0L
+        var lastGovernorTickMs = 0L
+        var lastFrameSeenMs = 0L
         while (true) {
-            val frame = frameOrNull()
-            if (frame != null) {
-                val detections = detectionSource.detect().getOrElse { emptyList() }
-                emitAlerts(detections)
-                sampleMemoryIfDue(lastMemorySampleMs)
-                lastMemorySampleMs = System.currentTimeMillis()
-                delay(frameIntervalMs)
+            val mode = modeController.current
+            val frame = if (mode == OrchestrationState.OBSTACLE_ASSISTANCE_ACTIVE) {
+                camera.peekLatestFrame()
+            } else if (mode == OrchestrationState.DEGRADED) {
+                // Camera still bound; detect only if governor allows.
+                camera.peekLatestFrame()
             } else {
+                null
+            }
+            if (frame != null) {
+                lastFrameSeenMs = System.currentTimeMillis()
+                if (mode == OrchestrationState.OBSTACLE_ASSISTANCE_ACTIVE &&
+                    !resourceManager.governor.continuousDetectionStopped()
+                ) {
+                    val startedAt = System.nanoTime()
+                    val detections = detectionSource.detect().getOrElse { emptyList() }
+                    val latencyMs = (System.nanoTime() - startedAt) / NANOS_PER_MS
+                    resourceManager.recordInferenceLatencyMs(latencyMs)
+                    emitAlerts(detections)
+                    sampleMemoryIfDue(lastMemorySampleMs)
+                    lastMemorySampleMs = System.currentTimeMillis()
+                    lastGovernorTickMs = System.currentTimeMillis()
+                    val interval = resourceManager.tick(cameraAvailable = true)
+                        ?: CRITICAL_POLL_MS
+                    delay(interval)
+                } else {
+                    // Critical / DEGRADED: no continuous detection; tick recovers (OR-006.4).
+                    lastGovernorTickMs = System.currentTimeMillis()
+                    resourceManager.tick(cameraAvailable = true)
+                    delay(CRITICAL_POLL_MS)
+                }
+            } else {
+                val now = System.currentTimeMillis()
+                if (lastFrameSeenMs == 0L) lastFrameSeenMs = now
+                if (now - lastGovernorTickMs >= GOVERNOR_TICK_MS) {
+                    lastGovernorTickMs = now
+                    // Transient frame gaps are not "camera lost" (OR-010.2).
+                    val cameraReady = now - lastFrameSeenMs < CAMERA_LOST_MS
+                    resourceManager.tick(cameraAvailable = cameraReady)
+                }
                 delay(IDLE_POLL_MS)
             }
         }
@@ -136,13 +177,6 @@ class ObstacleAssistanceCoordinator @Inject constructor(
             memoryMonitor.sampleNow()
         }
     }
-
-    private fun frameOrNull() =
-        if (modeController.current == OrchestrationState.OBSTACLE_ASSISTANCE_ACTIVE) {
-            camera.peekLatestFrame()
-        } else {
-            null
-        }
 
     private suspend fun emitAlerts(detections: List<Detection>) {
         runCatching {
@@ -158,5 +192,9 @@ class ObstacleAssistanceCoordinator @Inject constructor(
         const val MANIFEST_ASSET = "models/manifest.json"
         const val IDLE_POLL_MS = 50L
         const val MEMORY_SAMPLE_INTERVAL_MS = 5_000L
+        const val GOVERNOR_TICK_MS = 1_000L
+        const val CRITICAL_POLL_MS = 2_000L
+        const val CAMERA_LOST_MS = 5_000L
+        const val NANOS_PER_MS = 1_000_000.0
     }
 }
