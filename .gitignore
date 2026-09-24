@@ -48,3 +48,7 @@ __pycache__/
 
 # M7 device report dumps (summaries live in docs/M7_REPORTS.md)
 /tools/reports/
+# Secrets — never commit
+keystore.properties
+.env
+.env.*

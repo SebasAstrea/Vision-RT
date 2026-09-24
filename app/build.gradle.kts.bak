@@ -18,32 +18,15 @@ android {
         versionName = "0.8.0-beta.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
-        }
-    }
-
-    signingConfigs {
-        create("release") {
-            storeFile = file("../visionrt-release.jks")
-            storePassword = System.getenv("VISIONRT_STORE_PASSWORD")
-                ?: (project.findProperty("visionrt.storePassword") as String?)
-            keyAlias = "visionrt"
-            keyPassword = System.getenv("VISIONRT_KEY_PASSWORD")
-                ?: (project.findProperty("visionrt.keyPassword") as String?)
-        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                           "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
         }
         // No "demo" build type: debug is now clean because hilt-android-testing
         // lives only in androidTestImplementation (see dependencies below).
