@@ -3,7 +3,7 @@
 ## Architecture and Technology Stack  
 ### Accessible Vision and Audio Assistance Mobile Application
 
-> **Executive summary:** Technical architecture (v1.0) for the Android-native, Kotlin-first assistant. Layered modular system with an Orchestration Core as the center of control (mode state machine, resource governor, model lifecycle, frame scheduling, alert policy, degradation engine, feedback priority). Approved stack: Android Views + ViewBinding, Hilt, CameraX (latest-frame-only, 640×480 analysis, 320×320 detector input), LiteRT/TFLite CPU/XNNPACK with YOLOv8n INT8, ML Kit OCR v2, system TTS + SoundPool + VibrationEffect, DataStore, optional C++17 NDK hot paths and ONNX fallback. Modules: app, core, feature, perception, inference, feedback, data, benchmark, tools, with strict dependency rules. Perf budgets: inference P95 ≤ 450 ms, end-to-end alert ≤ 800 ms, preprocess ≤ 80 ms. Memory budget ≤ 800 MB; degradation ladder L0-L3 for thermal/battery/memory/latency pressure. 14 ADRs document key decisions (native Android, Kotlin, Views, LiteRT, YOLOv8n INT8, ML Kit, templates, no continuous VLM on low-end, orchestration as core value).
+> **Executive summary:** Technical architecture (v1.0) for the Android-native, Kotlin-first assistant. Layered modular system with an Orchestration Core as the center of control (mode state machine, resource governor, model lifecycle, frame scheduling, alert policy, degradation engine, feedback priority). Approved stack: Android Views + ViewBinding, Hilt, CameraX (latest-frame-only, 640×480 analysis, 320×320 detector input), LiteRT/TFLite CPU/XNNPACK with YOLOv8n INT8, ML Kit OCR v2, system TTS + SoundPool + VibrationEffect, DataStore, optional C++17 NDK hot paths and ONNX fallback. Modules: app, core, feature, perception, inference, feedback, data, benchmark, tools, with strict dependency rules. Perf budgets: inference P95 ≤ 450 ms, end-to-end alert ≤ 800 ms, preprocess ≤ 80 ms. Memory budget ≤ 800 MB; degradation ladder L0-L3 for thermal/battery/memory/latency pressure. 14 ADRs document key decisions (native Android, Kotlin, Views, LiteRT, YOLOv8n INT8, ML Kit, templates, no continuous VLM on low-end, orchestration as core value); ADR-010 proposes detector + optional relative-depth fusion for proximity (Proposed).
 
 **Version:** 1.0  
 **Status:** Proposed for technical validation  
@@ -341,7 +341,7 @@ Reasons:
 | Detection input | 320 x 320 default. |
 | Detection classes | Priority mobility classes only. |
 | OCR | ML Kit Text Recognition v2, offline model. |
-| Depth | Not used by default. |
+| Depth | Not used by default; optional relative-depth model only after ADR-010 quality gate. |
 | VLM | Disabled by default on low-end. Optional cloud or high-end only. |
 
 Detector policy:
@@ -1427,6 +1427,42 @@ Cover:
 
 ---
 
+### ADR-010: Detector + Depth fusion for proximity
+
+**Decision:** Keep a single always-on object detector (upgrade path: YOLOv8n → **YOLO26n** INT8, fallback YOLO11n) and add an optional **relative-depth** model as a second, **conditionally executed** signal that fuses with detector output to produce proximity and criticality. Never run both models unconditionally in the hot loop on low-end devices.
+
+**Reason:**
+- Detection answers *what/where* (label, sector, confidence). Depth answers *how deep* (relative distance under the box). Today proximity is a bbox-area heuristic (`NEAR_AREA_FRACTION`), which mis-fires with perspective and object scale — users report warnings only when the obstacle is already “on top of” the camera.
+- YOLO26n (NMS-free, DFL-free) is the natural same-ecosystem upgrade: better INT8 story, lower CPU latency, higher mAP than v8n at nano scale, still LiteRT-compatible.
+- Running depth only when a candidate exists (conf ≥ threshold and/or provisional NEAR) keeps sequential p95 well under the 450 ms budget and limits thermal/memory pressure; degrading by unloading depth first matches the L0–L3 ladder.
+
+**Consequence:**
+1. **Runtime:** `ObjectDetector` stays the primary port. A new `DepthEstimator` port (optional model) is owned by perception/inference; orchestration consumes a fused `Proximity`/`criticality` signal, not raw depth maps.
+2. **Fusion (v1):** relative inverse-depth sampled inside the detection box (median/low percentile) combined with bbox area and confidence → `Proximity.NEAR|MEDIUM|FAR`. Fallback to area-only if depth is unloaded, fails, or is below quality gate.
+3. **Scheduling:** depth runs only on candidate frames (detector output non-empty and conf/NEAR gate). Not every frame; not two concurrent interpreters by default.
+4. **Lifecycle:** depth is an optional model with its own manifest entry (asset, checksum, input size, quantization). Lazy-load on first candidate (or session start on high-end profile only). Unload first under memory/thermal degradation (before detector).
+5. **Budgets:** sequential worst case detector+depth must keep P95 ≤ 450 ms and end-to-end critical alert ≤ 800 ms on the SM-A226BR reference; prove with `DetectorBenchmark` + a depth-inclusive path note before enabling by default.
+6. **Validation:** A/B on-device for false “cerca/lejos”; no claim of metric distance. If depth quality gate fails, silent fallback to area heuristic — never block alerts.
+7. **Explicit non-goals:** continuous VLM/Grounding-DINO/OWLv2 on low-end (ADR-008); stereo depth as default (future extension only); open-vocabulary YOLO-World in the obstacle loop (on-demand query only, later milestone).
+8. **Risk:** two model assets increase APK size and conversion surface → keep depth ≤ ~10 MB quantized and total core ML assets within §25.3; conversion spike required before wiring (stop condition: model conversion).
+
+**Status:** Proposed (spike: export YOLO26n + depth-lite, bench on A226; enable default only after quality gate).
+
+**Evaluation plan (spike before wiring):**
+
+| Step | Action | Pass criteria |
+|---|---|---|
+| S1 | Export YOLO26n 320 → LiteRT + dynamic INT8 (same recipe as v8n) | File ≤ 20 MB; prepares on A226; checksum in manifest |
+| S2 | Bench YOLO26n alone via existing `DetectorBenchmark` | P95 ≤ 450 ms (target ≤ 150 ms); no crash / OOM in 30 min |
+| S3 | Export depth-lite (relative monocular, e.g. DA-V2-small or FastDepth-class) ≤ 256 px, INT8/FP16 | File ≤ 10 MB; LiteRT prepare OK |
+| S4 | Offline eval: fuse inverse-depth-in-box + area + conf vs labeled proximity zones | Proximity accuracy ≥ 0.80 (FR-007); area-only baseline recorded |
+| S5 | On-device sequential path: detect → (candidate?) depth → fused proximity | Sequential P95 ≤ 450 ms; thermal stable vs baseline |
+| S6 | A/B false “cerca/lejos” with user scenarios on SM-A226BR | Fewer late NEAR alerts; no new false-critical spam |
+
+Order: **S1–S2 first** (detector upgrade alone is shippable). Depth (S3–S6) only if S2 passes and proximity still fails the 0.80 target. Failure at any step → keep v8n + area heuristic; ADR stays Proposed or becomes Rejected with note.
+
+---
+
 ## 24. Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -1441,6 +1477,7 @@ Cover:
 | False positives | User distrust | Temporal filtering, confidence gating, cooldowns. |
 | False negatives | Safety risk | Conservative messaging, known limitations, complement-only positioning. |
 | Model conversion issues | Blocked release | Maintain ONNX fallback path and conversion tests. |
+| Detector + depth overruns latency/memory (ADR-010) | Missed alerts, heat | Conditional depth only; unload depth first; quality gate before default enable. |
 
 ---
 
