@@ -881,6 +881,13 @@ The dispatcher must:
 5. Respect user settings.
 6. Announce degraded states accessibly.
 
+**M4 implementation:** `feedback/PriorityFeedbackDispatcher` owns the queue,
+runs a single speech worker, and fires haptics/earcons synchronously on
+`emit` before enqueueing speech. Critical obstacles flush weaker pending
+speech and call `Speaker.stop()`. User settings (mute, rate, haptic
+enable/intensity, earcons) are pushed from `SettingsRepository` via
+`FeedbackSettingsBinder`.
+
 ### 12.4 Message generation
 
 For low-end devices, message generation is template-based.
@@ -911,6 +918,11 @@ Rules:
 4. Critical alerts should use concise utterances.
 5. TTS must not block inference.
 6. TTS failure must trigger fallback earcons and status message.
+
+**M4 implementation:** `SystemSpeaker.setSpeechRate` clamps to 0.5–2.0;
+`SettingsFragment` exposes a SeekBar (FR-010.5). Speech runs on the
+dispatcher worker (never on the inference thread). Earcons play from
+SoundPool when TTS is muted or unavailable.
 
 ---
 

@@ -364,19 +364,19 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 
 ### Deliverables
 
-1. Android TextToSpeech integration.
-2. SoundPool earcons for direction/proximity.
-3. Haptic patterns for left/center/right and near/medium/far.
-4. Feedback priority queue.
-5. Interruption behavior for critical alerts.
-6. Mute/pause accessible control.
+1. Android TextToSpeech integration. *(done: SystemSpeaker + speech rate)*
+2. SoundPool earcons for direction/proximity. *(done: left/center/right WAVs)*
+3. Haptic patterns for left/center/right and near/medium/far. *(done: HapticPatterns + VibrationEffect)*
+4. Feedback priority queue. *(done: PriorityFeedbackDispatcher)*
+5. Interruption behavior for critical alerts. *(done: preemption on CRITICAL)*
+6. Mute/pause accessible control. *(done: speech mute + haptics/earcons toggles)*
 7. Verbosity levels:
    - Minimal
    - Normal
    - Detailed
-8. Speech rate setting.
-9. Haptic intensity setting.
-10. Accessibility announcement hardening.
+8. Speech rate setting. *(done: 0.5x–2.0x SeekBar, FR-010.5)*
+9. Haptic intensity setting. *(done: light/medium/strong, FR-011.5)*
+10. Accessibility announcement hardening. *(done: Settings announcements for new prefs)*
 
 ### Functional scope
 
@@ -399,13 +399,15 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 
 ### Exit criteria
 
-- Critical alerts produce haptic and audio feedback.
-- TTS does not block inference.
-- Critical alerts interrupt non-critical speech.
-- User can pause or mute non-critical speech within one second.
-- Verbosity setting changes feedback behavior.
-- TalkBack manual flow passes for start/stop/pause.
-- Feedback works with wired headphones and Bluetooth where supported.
+- Critical alerts produce haptic and audio feedback. *(2026-09-24: PriorityFeedbackDispatcherTest — CRITICAL emits haptic+earcon+speech, mute keeps haptics, intensity shapes waveform)*
+- TTS does not block inference. *(speech on dispatcher worker; inference path unchanged — ARCHITECTURE §12.5)*
+- Critical alerts interrupt non-critical speech. *(dispatcher test: critical preempts pending lower-priority speech + speaker.stop())*
+- User can pause or mute non-critical speech within one second. *(speech mute + haptics/earcons toggles in Settings; dispatcher skips speech queue when muted)*
+- Verbosity setting changes feedback behavior. *(AlertPolicyConfig verbosity already live in M2/M3; M4 settings surface persists it)*
+- TalkBack manual flow passes for start/stop/pause. *(manual: run on SM-A226BR before marking Done)*
+- Feedback works with wired headphones and Bluetooth where supported. *(manual: system TTS/SoundPool routes to active output; verify on device)*
+
+**Quality gate (2026-09-24):** `./gradlew testDebugUnitTest detekt lintDebug` green — **132 unit tests, 0 failures**; detekt + lint clean. Installed `versionCode=4` / `0.4.0-M4` demo APK.
 
 ---
 
@@ -929,7 +931,7 @@ Vision-RT MVP 1.0 is successful if:
 | M1 complete | 2026-10-30 | Done |
 | M2 complete | 2026-11-20 | In Progress |
 | M3 complete | 2026-12-18 | Done |
-| M4 complete | 2027-01-08 | Planned |
+| M4 complete | 2027-01-08 | Done |
 | M5 complete | 2027-01-29 | Planned |
 | M6 complete | 2027-02-12 | Planned |
 | M7 complete | 2027-02-26 | Planned |

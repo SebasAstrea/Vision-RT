@@ -1,5 +1,6 @@
 package com.visionrt.feature.voice
 
+import com.visionrt.core.domain.HapticIntensity
 import com.visionrt.core.domain.Verbosity
 import com.visionrt.core.speech.Speaker
 import com.visionrt.data.settings.SettingsRepository
@@ -47,6 +48,17 @@ class ScreenVoiceTest {
         override suspend fun setSpeechMuted(muted: Boolean) {
             mutedFlow.value = muted
         }
+
+        override val speechRate: Flow<Float> = MutableStateFlow(1.0f)
+        override suspend fun setSpeechRate(rate: Float) = Unit
+        override val hapticsEnabled: Flow<Boolean> = MutableStateFlow(true)
+        override suspend fun setHapticsEnabled(enabled: Boolean) = Unit
+        override val hapticIntensity: Flow<HapticIntensity> =
+            MutableStateFlow(HapticIntensity.MEDIUM)
+
+        override suspend fun setHapticIntensity(intensity: HapticIntensity) = Unit
+        override val earconsEnabled: Flow<Boolean> = MutableStateFlow(true)
+        override suspend fun setEarconsEnabled(enabled: Boolean) = Unit
     }
 
     private fun voice(

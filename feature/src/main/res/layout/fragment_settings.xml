@@ -58,6 +58,111 @@
         </RadioGroup>
 
         <TextView
+            android:id="@+id/section_speech_rate"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_speech_rate_title" />
+
+        <TextView
+            android:id="@+id/speech_rate_value"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_speech_rate_default" />
+
+        <SeekBar
+            android:id="@+id/speech_rate_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/settings_speech_rate_title"
+            android:max="30"
+            android:progress="10" />
+
+        <TextView
+            android:id="@+id/section_haptics"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_haptics_title" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/haptics_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/settings_haptics_enable"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/haptics_warning"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/settings_haptics_warning"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/haptic_intensity_title"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/settings_haptic_intensity_title" />
+
+        <RadioGroup
+            android:id="@+id/haptic_intensity_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/haptic_intensity_light"
+                style="@style/VisionRTRadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_haptic_intensity_light" />
+
+            <RadioButton
+                android:id="@+id/haptic_intensity_medium"
+                style="@style/VisionRTRadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_haptic_intensity_medium" />
+
+            <RadioButton
+                android:id="@+id/haptic_intensity_strong"
+                style="@style/VisionRTRadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_haptic_intensity_strong" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/section_earcons"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_earcons_title" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/earcons_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/settings_earcons_enable"
+            android:textSize="18sp" />
+
+        <TextView
             android:id="@+id/section_device_profile"
             style="@style/VisionRT.TextView.Section"
             android:layout_width="match_parent"

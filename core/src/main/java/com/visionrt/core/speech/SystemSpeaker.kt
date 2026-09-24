@@ -43,6 +43,11 @@ class SystemSpeaker(context: Context) : Speaker {
         engine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
     }
 
+    override fun setSpeechRate(rate: Float) {
+        val clamped = rate.coerceIn(MIN_SPEECH_RATE, MAX_SPEECH_RATE)
+        engine?.setSpeechRate(clamped)
+    }
+
     override fun stop() {
         engine?.stop()
     }
@@ -57,5 +62,7 @@ class SystemSpeaker(context: Context) : Speaker {
     private companion object {
         const val TAG = "SystemSpeaker"
         const val UTTERANCE_ID = "visionrt-ui"
+        const val MIN_SPEECH_RATE = 0.5f
+        const val MAX_SPEECH_RATE = 2.0f
     }
 }

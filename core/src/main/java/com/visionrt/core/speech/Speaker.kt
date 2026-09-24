@@ -13,6 +13,12 @@ interface Speaker {
     /** Queues [text] for speech. No-op when not ready or [text] is blank. */
     fun speak(text: String)
 
+    /**
+     * App-level speech rate override in 0.5x–2.0x (FR-010.5). Engines that
+     * cannot change rate at runtime may ignore the value.
+     */
+    fun setSpeechRate(rate: Float) = Unit
+
     /** Stops any in-flight utterance and clears the queue. */
     fun stop()
 

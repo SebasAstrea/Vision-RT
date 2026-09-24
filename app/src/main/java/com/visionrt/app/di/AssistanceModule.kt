@@ -9,8 +9,7 @@ import com.visionrt.core.orchestration.AlertPolicy
 import com.visionrt.core.orchestration.DetectionSource
 import com.visionrt.core.orchestration.FeedbackPort
 import com.visionrt.core.orchestration.ModeController
-import com.visionrt.core.speech.Speaker
-import com.visionrt.feedback.SpeakerFeedbackPort
+import com.visionrt.feedback.PriorityFeedbackDispatcher
 import com.visionrt.inference.litert.LiteRtObjectDetector
 import com.visionrt.inference.runtimeapi.ObjectDetector
 import com.visionrt.perception.camera.CameraFrameSource
@@ -45,7 +44,7 @@ object AssistanceModule {
 
     @Provides
     @Singleton
-    fun provideFeedbackPort(speaker: Speaker): FeedbackPort = SpeakerFeedbackPort(speaker)
+    fun provideFeedbackPort(dispatcher: PriorityFeedbackDispatcher): FeedbackPort = dispatcher
 
     @Provides
     @Singleton

@@ -62,6 +62,26 @@
     <string name="settings_verbosity_normal">Normal</string>
     <string name="settings_verbosity_detailed">Detailed</string>
     <string name="settings_verbosity_announce">Alert detail level: %1$s.</string>
+    <string name="settings_speech_rate_title">Speech rate</string>
+    <string name="settings_speech_rate_default">1.0x</string>
+    <string name="settings_speech_rate_value">%1$.1fx</string>
+    <string name="settings_speech_rate_announce">Speech rate: %1$s.</string>
+    <string name="settings_haptics_title">Vibration alerts</string>
+    <string name="settings_haptics_enable">Vibrate for critical obstacles</string>
+    <string name="settings_haptics_warning">Warning: without vibration you may miss critical alerts, especially with Bluetooth audio delay.</string>
+    <string name="settings_haptics_announce">Vibration alerts: %1$s.</string>
+    <string name="settings_haptics_on">on</string>
+    <string name="settings_haptics_off">off</string>
+    <string name="settings_haptic_intensity_title">Vibration intensity</string>
+    <string name="settings_haptic_intensity_light">Light</string>
+    <string name="settings_haptic_intensity_medium">Medium</string>
+    <string name="settings_haptic_intensity_strong">Strong</string>
+    <string name="settings_haptic_intensity_announce">Vibration intensity: %1$s.</string>
+    <string name="settings_earcons_title">Sound cues</string>
+    <string name="settings_earcons_enable">Play direction sounds with alerts</string>
+    <string name="settings_earcons_announce">Sound cues: %1$s.</string>
+    <string name="settings_earcons_on">on</string>
+    <string name="settings_earcons_off">off</string>
     <string name="settings_replay_training">Review the training</string>
     <string name="settings_replay_training_desc">Open the introductory screens again at any time.</string>
     <string name="settings_device_profile">Device profile</string>
@@ -82,6 +102,6 @@
 
     <!-- Help (SAF-003, SAF-005) -->
     <string name="help_title">Help and limitations</string>
-    <string name="help_body">Vision-RT is a complement to existing mobility methods. It does not replace a white cane, guide dog, human guide, or orientation and mobility training.\n\nKnown limitations: transparent surfaces such as glass, low light, highly reflective surfaces, small or partially hidden obstacles, fast-moving objects, overhead obstacles outside camera view, and wet or irregular ground surfaces.\n\nThe app cannot detect everything and cannot prevent all accidents. Do not rely on it alone in high-risk environments. Practice in safe environments first, and consult an orientation and mobility professional when appropriate.</string>
+    <string name="help_body">Vision-RT is a complement to existing mobility methods. It does not replace a white cane, guide dog, human guide, or orientation and mobility training.\n\nKnown limitations: transparent surfaces such as glass, low light, highly reflective surfaces, small or partially hidden obstacles, fast-moving objects, overhead obstacles outside camera view, and wet or irregular ground surfaces.\n\nVibration patterns: one medium pulse means center ahead; a short double pulse means left; a rapid triple pulse means right. Stronger, tighter pulses mean the obstacle is nearer. Sound cues use a low tone for left, middle tone for center, and high tone for right.\n\nThe app cannot detect everything and cannot prevent all accidents. Do not rely on it alone in high-risk environments. Practice in safe environments first, and consult an orientation and mobility professional when appropriate.</string>
     <string name="help_back">Back to home</string>
 </resources>

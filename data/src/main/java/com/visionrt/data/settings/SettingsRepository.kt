@@ -1,5 +1,6 @@
 package com.visionrt.data.settings
 
+import com.visionrt.core.domain.HapticIntensity
 import com.visionrt.core.domain.Verbosity
 import kotlinx.coroutines.flow.Flow
 
@@ -23,8 +24,28 @@ interface SettingsRepository {
 
     suspend fun setVerbosity(verbosity: Verbosity)
 
-    /** FR-004/FR-010: app-level speech mute (screen narration + future alerts). */
+    /** FR-004/FR-010: app-level speech mute (screen narration + alerts). */
     val speechMuted: Flow<Boolean>
 
     suspend fun setSpeechMuted(muted: Boolean)
+
+    /** FR-010.5: TTS rate override in 0.5x–2.0x (default 1.0). */
+    val speechRate: Flow<Float>
+
+    suspend fun setSpeechRate(rate: Float)
+
+    /** FR-011.6: haptic alerts on/off (default on). */
+    val hapticsEnabled: Flow<Boolean>
+
+    suspend fun setHapticsEnabled(enabled: Boolean)
+
+    /** FR-011.5 / FR-012.3: haptic intensity (default MEDIUM). */
+    val hapticIntensity: Flow<HapticIntensity>
+
+    suspend fun setHapticIntensity(intensity: HapticIntensity)
+
+    /** FR-012.4: non-speech earcons on/off (default on). */
+    val earconsEnabled: Flow<Boolean>
+
+    suspend fun setEarconsEnabled(enabled: Boolean)
 }

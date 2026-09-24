@@ -40,6 +40,8 @@ class AlertPipeline(
                     priority = candidate.priority,
                     message = TemplateComposer.compose(candidate, lang),
                     createdAtMs = clock(),
+                    sector = candidate.detection.sector,
+                    proximity = candidate.detection.proximity,
                 )
             }
         alerts.forEach { alert ->

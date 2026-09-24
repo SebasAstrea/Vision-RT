@@ -1,5 +1,6 @@
 package com.visionrt.app.testutil
 
+import com.visionrt.core.domain.HapticIntensity
 import com.visionrt.core.domain.Verbosity
 import com.visionrt.data.settings.SettingsRepository
 import dagger.Module
@@ -23,6 +24,10 @@ class TestSettingsRepository : SettingsRepository {
     private val trainingFlow = MutableStateFlow(STATE.trainingCompleted)
     private val verbosityFlow = MutableStateFlow(STATE.verbosity)
     private val speechMutedFlow = MutableStateFlow(STATE.speechMuted)
+    private val speechRateFlow = MutableStateFlow(STATE.speechRate)
+    private val hapticsEnabledFlow = MutableStateFlow(STATE.hapticsEnabled)
+    private val hapticIntensityFlow = MutableStateFlow(STATE.hapticIntensity)
+    private val earconsEnabledFlow = MutableStateFlow(STATE.earconsEnabled)
 
     override val onboardingAcknowledged: StateFlow<Boolean> = ackFlow.asStateFlow()
 
@@ -52,17 +57,54 @@ class TestSettingsRepository : SettingsRepository {
         speechMutedFlow.value = muted
     }
 
+    override val speechRate: StateFlow<Float> = speechRateFlow.asStateFlow()
+
+    override suspend fun setSpeechRate(rate: Float) {
+        val clamped = rate.coerceIn(0.5f, 2.0f)
+        STATE.speechRate = clamped
+        speechRateFlow.value = clamped
+    }
+
+    override val hapticsEnabled: StateFlow<Boolean> = hapticsEnabledFlow.asStateFlow()
+
+    override suspend fun setHapticsEnabled(enabled: Boolean) {
+        STATE.hapticsEnabled = enabled
+        hapticsEnabledFlow.value = enabled
+    }
+
+    override val hapticIntensity: StateFlow<HapticIntensity> = hapticIntensityFlow.asStateFlow()
+
+    override suspend fun setHapticIntensity(intensity: HapticIntensity) {
+        STATE.hapticIntensity = intensity
+        hapticIntensityFlow.value = intensity
+    }
+
+    override val earconsEnabled: StateFlow<Boolean> = earconsEnabledFlow.asStateFlow()
+
+    override suspend fun setEarconsEnabled(enabled: Boolean) {
+        STATE.earconsEnabled = enabled
+        earconsEnabledFlow.value = enabled
+    }
+
     object STATE {
         var onboardingAcknowledged = false
         var trainingCompleted = false
         var verbosity = Verbosity.NORMAL
         var speechMuted = false
+        var speechRate = 1.0f
+        var hapticsEnabled = true
+        var hapticIntensity = HapticIntensity.MEDIUM
+        var earconsEnabled = true
 
         fun reset() {
             onboardingAcknowledged = false
             trainingCompleted = false
             verbosity = Verbosity.NORMAL
             speechMuted = false
+            speechRate = 1.0f
+            hapticsEnabled = true
+            hapticIntensity = HapticIntensity.MEDIUM
+            earconsEnabled = true
         }
     }
 }

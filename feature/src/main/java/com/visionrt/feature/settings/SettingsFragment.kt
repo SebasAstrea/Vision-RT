@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.visionrt.core.diagnostics.DiagnosticsPort
 import com.visionrt.core.domain.DeviceProfile
 import com.visionrt.core.domain.DeviceProfileProvider
+import com.visionrt.core.domain.HapticIntensity
 import com.visionrt.core.domain.Verbosity
 import com.visionrt.data.settings.SettingsRepository
 import com.visionrt.feature.R
@@ -24,10 +26,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 /**
- * Settings (FR-012): verbosity (FR-006.5), training replay, device profile
- * read-only (OR-001.4), and one-shot detector benchmark (OR-004 diagnostics).
+ * Settings (FR-012): verbosity (FR-006.5), speech rate (FR-010.5), haptic
+ * enable/intensity (FR-011.5–6), earcons (FR-012.4), training replay, device
+ * profile read-only (OR-001.4), and one-shot detector benchmark (OR-004).
  */
 @AndroidEntryPoint
+@Suppress("TooManyFunctions") // FR-012 settings surface (verbosity, rate, haptics, earcons, bench)
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     @Inject
@@ -61,20 +65,12 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        collectVerbosity()
+        collectPreferences()
         showDeviceProfile()
-        binding.verbosityGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (isApplyingFromPreference) return@setOnCheckedChangeListener
-            val selected = when (checkedId) {
-                R.id.verbosity_minimal -> Verbosity.MINIMAL
-                R.id.verbosity_detailed -> Verbosity.DETAILED
-                else -> Verbosity.NORMAL
-            }
-            viewLifecycleOwner.lifecycleScope.launch { settings.setVerbosity(selected) }
-            val message = getString(R.string.settings_verbosity_announce, verbosityLabel(selected))
-            AnnouncementUtil.announce(binding.verbosityGroup, message)
-            viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
-        }
+        wireVerbosity()
+        wireSpeechRate()
+        wireHaptics()
+        wireEarcons()
 
         taps.attach(binding.replayTrainingButton, viewLifecycleOwner.lifecycleScope) {
             binding.root.findNavController().navigate(R.id.action_settings_to_onboarding)
@@ -96,12 +92,140 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         }
     }
 
+    private fun wireVerbosity() {
+        binding.verbosityGroup.setOnCheckedChangeListener { _, checkedId ->
+            if (isApplyingFromPreference) return@setOnCheckedChangeListener
+            val selected = when (checkedId) {
+                R.id.verbosity_minimal -> Verbosity.MINIMAL
+                R.id.verbosity_detailed -> Verbosity.DETAILED
+                else -> Verbosity.NORMAL
+            }
+            viewLifecycleOwner.lifecycleScope.launch { settings.setVerbosity(selected) }
+            announceAndSpeak(binding.verbosityGroup, verbosityLabel(selected), R.string.settings_verbosity_announce)
+        }
+    }
+
+    private fun wireSpeechRate() {
+        binding.speechRateSeek.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (!fromUser || isApplyingFromPreference) return
+                    binding.speechRateValue.text =
+                        getString(R.string.settings_speech_rate_value, progressToRate(progress))
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    if (isApplyingFromPreference) return
+                    val rate = progressToRate(seekBar?.progress ?: DEFAULT_SEEK_PROGRESS)
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        settings.setSpeechRate(rate)
+                        val label = getString(R.string.settings_speech_rate_value, rate)
+                        announceAndSpeak(binding.speechRateSeek, label, R.string.settings_speech_rate_announce)
+                    }
+                }
+            },
+        )
+    }
+
+    private fun wireHaptics() {
+        binding.hapticsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isApplyingFromPreference) return@setOnCheckedChangeListener
+            viewLifecycleOwner.lifecycleScope.launch { settings.setHapticsEnabled(isChecked) }
+            binding.hapticsWarning.visibility = if (isChecked) View.GONE else View.VISIBLE
+            val state = getString(
+                if (isChecked) R.string.settings_haptics_on else R.string.settings_haptics_off,
+            )
+            announceAndSpeak(binding.hapticsSwitch, state, R.string.settings_haptics_announce)
+        }
+        binding.hapticIntensityGroup.setOnCheckedChangeListener { _, checkedId ->
+            if (isApplyingFromPreference) return@setOnCheckedChangeListener
+            val intensity = when (checkedId) {
+                R.id.haptic_intensity_light -> HapticIntensity.LIGHT
+                R.id.haptic_intensity_strong -> HapticIntensity.STRONG
+                else -> HapticIntensity.MEDIUM
+            }
+            viewLifecycleOwner.lifecycleScope.launch { settings.setHapticIntensity(intensity) }
+            announceAndSpeak(
+                binding.hapticIntensityGroup,
+                hapticIntensityLabel(intensity),
+                R.string.settings_haptic_intensity_announce,
+            )
+        }
+    }
+
+    private fun wireEarcons() {
+        binding.earconsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isApplyingFromPreference) return@setOnCheckedChangeListener
+            viewLifecycleOwner.lifecycleScope.launch { settings.setEarconsEnabled(isChecked) }
+            val state = getString(
+                if (isChecked) R.string.settings_earcons_on else R.string.settings_earcons_off,
+            )
+            announceAndSpeak(binding.earconsSwitch, state, R.string.settings_earcons_announce)
+        }
+    }
+
+    private fun announceAndSpeak(anchor: View, label: String, announceRes: Int) {
+        val message = getString(announceRes, label)
+        AnnouncementUtil.announce(anchor, message)
+        viewLifecycleOwner.lifecycleScope.launch { voice.speakNow(message) }
+    }
+
+    private fun progressToRate(progress: Int): Float =
+        (SPEECH_RATE_MIN + progress * SPEECH_RATE_STEP)
+            .coerceIn(SPEECH_RATE_MIN, SPEECH_RATE_MAX)
+
+    private fun rateToProgress(rate: Float): Int =
+        ((rate - SPEECH_RATE_MIN) / SPEECH_RATE_STEP).toInt()
+            .coerceIn(0, SPEECH_SEEK_MAX)
+
+    private fun collectPreferences() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            settings.verbosity.collect { verbosity ->
+                isApplyingFromPreference = true
+                binding.verbosityGroup.check(radioIdFor(verbosity))
+                isApplyingFromPreference = false
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settings.speechRate.collect { rate ->
+                isApplyingFromPreference = true
+                binding.speechRateSeek.progress = rateToProgress(rate)
+                binding.speechRateValue.text =
+                    getString(R.string.settings_speech_rate_value, rate)
+                isApplyingFromPreference = false
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settings.hapticsEnabled.collect { enabled ->
+                isApplyingFromPreference = true
+                binding.hapticsSwitch.isChecked = enabled
+                binding.hapticsWarning.visibility = if (enabled) View.GONE else View.VISIBLE
+                isApplyingFromPreference = false
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settings.hapticIntensity.collect { intensity ->
+                isApplyingFromPreference = true
+                binding.hapticIntensityGroup.check(hapticRadioId(intensity))
+                isApplyingFromPreference = false
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settings.earconsEnabled.collect { enabled ->
+                isApplyingFromPreference = true
+                binding.earconsSwitch.isChecked = enabled
+                isApplyingFromPreference = false
+            }
+        }
+    }
+
     private fun showDeviceProfile() {
-        val label = when (deviceProfile.profile) {
+        binding.deviceProfileValue.text = when (deviceProfile.profile) {
             DeviceProfile.LOW_END -> getString(R.string.settings_device_profile_low_end)
             DeviceProfile.STANDARD -> getString(R.string.settings_device_profile_standard)
         }
-        binding.deviceProfileValue.text = label
     }
 
     private fun runDetectorBenchmark() {
@@ -149,24 +273,35 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         Verbosity.DETAILED -> getString(R.string.settings_verbosity_detailed)
     }
 
+    private fun hapticIntensityLabel(intensity: HapticIntensity): String = when (intensity) {
+        HapticIntensity.LIGHT -> getString(R.string.settings_haptic_intensity_light)
+        HapticIntensity.MEDIUM -> getString(R.string.settings_haptic_intensity_medium)
+        HapticIntensity.STRONG -> getString(R.string.settings_haptic_intensity_strong)
+    }
+
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
-    }
-
-    private fun collectVerbosity() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            settings.verbosity.collect { verbosity ->
-                isApplyingFromPreference = true
-                binding.verbosityGroup.check(radioIdFor(verbosity))
-                isApplyingFromPreference = false
-            }
-        }
     }
 
     private fun radioIdFor(verbosity: Verbosity): Int = when (verbosity) {
         Verbosity.MINIMAL -> R.id.verbosity_minimal
         Verbosity.DETAILED -> R.id.verbosity_detailed
         Verbosity.NORMAL -> R.id.verbosity_normal
+    }
+
+    private fun hapticRadioId(intensity: HapticIntensity): Int = when (intensity) {
+        HapticIntensity.LIGHT -> R.id.haptic_intensity_light
+        HapticIntensity.MEDIUM -> R.id.haptic_intensity_medium
+        HapticIntensity.STRONG -> R.id.haptic_intensity_strong
+    }
+
+    private companion object {
+        // Seek range 0..30 maps to 0.5x..2.0x in 0.05 steps (progress 10 = 1.0x).
+        const val SPEECH_SEEK_MAX = 30
+        const val DEFAULT_SEEK_PROGRESS = 10
+        const val SPEECH_RATE_MIN = 0.5f
+        const val SPEECH_RATE_MAX = 2.0f
+        const val SPEECH_RATE_STEP = 0.05f
     }
 }

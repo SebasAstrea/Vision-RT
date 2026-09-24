@@ -62,6 +62,26 @@
     <string name="settings_verbosity_normal">Normal</string>
     <string name="settings_verbosity_detailed">Detallado</string>
     <string name="settings_verbosity_announce">Nivel de detalle de las alertas: %1$s.</string>
+    <string name="settings_speech_rate_title">Velocidad del habla</string>
+    <string name="settings_speech_rate_default">1.0x</string>
+    <string name="settings_speech_rate_value">%1$.1fx</string>
+    <string name="settings_speech_rate_announce">Velocidad del habla: %1$s.</string>
+    <string name="settings_haptics_title">Alertas de vibración</string>
+    <string name="settings_haptics_enable">Vibrar por obstáculos críticos</string>
+    <string name="settings_haptics_warning">Advertencia: sin vibración puedes perder alertas críticas, sobre todo con retraso de audio Bluetooth.</string>
+    <string name="settings_haptics_announce">Alertas de vibración: %1$s.</string>
+    <string name="settings_haptics_on">activadas</string>
+    <string name="settings_haptics_off">desactivadas</string>
+    <string name="settings_haptic_intensity_title">Intensidad de la vibración</string>
+    <string name="settings_haptic_intensity_light">Suave</string>
+    <string name="settings_haptic_intensity_medium">Media</string>
+    <string name="settings_haptic_intensity_strong">Fuerte</string>
+    <string name="settings_haptic_intensity_announce">Intensidad de la vibración: %1$s.</string>
+    <string name="settings_earcons_title">Sonidos de dirección</string>
+    <string name="settings_earcons_enable">Reproducir sonidos de dirección con las alertas</string>
+    <string name="settings_earcons_announce">Sonidos de dirección: %1$s.</string>
+    <string name="settings_earcons_on">activados</string>
+    <string name="settings_earcons_off">desactivados</string>
     <string name="settings_replay_training">Ver de nuevo la formación</string>
     <string name="settings_replay_training_desc">Vuelve a abrir las pantallas de introducción cuando quieras.</string>
     <string name="settings_device_profile">Perfil del dispositivo</string>
@@ -82,6 +102,6 @@
 
     <!-- Help (SAF-003, SAF-005) -->
     <string name="help_title">Ayuda y limitaciones</string>
-    <string name="help_body">Vision-RT es un complemento de los métodos de movilidad existentes. No sustituye el bastón blanco, el perro guía, la guía humana ni la formación en orientación y movilidad.\n\nLimitaciones conocidas: superficies transparentes como el vidrio, poca luz, superficies muy reflectantes, obstáculos pequeños u ocultos en parte, objetos en movimiento rápido, obstáculos por encima fuera de la vista de la cámara y suelos mojados o irregulares.\n\nLa app no lo detecta todo y no puede evitar todos los accidentes. No confíes solo en ella en entornos de alto riesgo. Practica primero en entornos seguros y consulta con un profesional de orientación y movilidad cuando corresponda.</string>
+    <string name="help_body">Vision-RT es un complemento de los métodos de movilidad existentes. No sustituye el bastón blanco, el perro guía, la guía humana ni la formación en orientación y movilidad.\n\nLimitaciones conocidas: superficies transparentes como el vidrio, poca luz, superficies muy reflectantes, obstáculos pequeños u ocultos en parte, objetos en movimiento rápido, obstáculos por encima fuera de la vista de la cámara y suelos mojados o irregulares.\n\nPatrones de vibración: un pulso medio significa delante; un doble pulso corto significa a la izquierda; un triple pulso rápido significa a la derecha. Pulsos más fuertes y juntos significan que el obstáculo está más cerca. Los sonidos de dirección usan un tono grave para la izquierda, tono medio para el centro y tono agudo para la derecha.\n\nLa app no lo detecta todo y no puede evitar todos los accidentes. No confíes solo en ella en entornos de alto riesgo. Practica primero en entornos seguros y consulta con un profesional de orientación y movilidad cuando corresponda.</string>
     <string name="help_back">Volver a la pantalla principal</string>
 </resources>

@@ -3,6 +3,7 @@ package com.visionrt.data.settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import com.visionrt.core.domain.HapticIntensity
 import com.visionrt.core.domain.Verbosity
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,10 @@ class DataStoreSettingsRepositoryTest {
             assertFalse(repo.trainingCompleted.first())
             assertFalse(repo.speechMuted.first())
             assertEquals(Verbosity.NORMAL, repo.verbosity.first())
+            assertEquals(1.0f, repo.speechRate.first())
+            assertTrue(repo.hapticsEnabled.first())
+            assertEquals(HapticIntensity.MEDIUM, repo.hapticIntensity.first())
+            assertTrue(repo.earconsEnabled.first())
         }
         scope.cancel()
     }
@@ -94,6 +99,66 @@ class DataStoreSettingsRepositoryTest {
             repo.setSpeechMuted(false)
             assertFalse(repo.speechMuted.first())
             scope.cancel()
+        }
+    }
+
+    @Test
+    fun speechRateClampsToSupportedRange() {
+        runBlocking {
+            val (store, scope) = newStore(tmp.newFile("s.preferences_pb"))
+            val repo = DataStoreSettingsRepository(store)
+            repo.setSpeechRate(0.1f)
+            assertEquals(0.5f, repo.speechRate.first())
+            repo.setSpeechRate(3.0f)
+            assertEquals(2.0f, repo.speechRate.first())
+            repo.setSpeechRate(1.25f)
+            assertEquals(1.25f, repo.speechRate.first())
+            scope.cancel()
+        }
+    }
+
+    @Test
+    fun hapticIntensityAndTogglesRoundTrip() {
+        runBlocking {
+            val (store, scope) = newStore(tmp.newFile("s.preferences_pb"))
+            val repo = DataStoreSettingsRepository(store)
+            HapticIntensity.entries.forEach { intensity ->
+                repo.setHapticIntensity(intensity)
+                assertEquals(intensity, repo.hapticIntensity.first())
+            }
+            repo.setHapticsEnabled(false)
+            assertFalse(repo.hapticsEnabled.first())
+            repo.setHapticsEnabled(true)
+            assertTrue(repo.hapticsEnabled.first())
+            repo.setEarconsEnabled(false)
+            assertFalse(repo.earconsEnabled.first())
+            repo.setEarconsEnabled(true)
+            assertTrue(repo.earconsEnabled.first())
+            scope.cancel()
+        }
+    }
+
+    @Test
+    fun feedbackPrefsPersistAcrossInstances() {
+        val file = tmp.newFile("s.preferences_pb")
+        runBlocking {
+            val (first, firstScope) = newStore(file)
+            DataStoreSettingsRepository(first).apply {
+                setSpeechRate(1.5f)
+                setHapticsEnabled(false)
+                setHapticIntensity(HapticIntensity.STRONG)
+                setEarconsEnabled(false)
+            }
+            firstScope.cancel()
+
+            val (second, secondScope) = newStore(file)
+            DataStoreSettingsRepository(second).let { repo ->
+                assertEquals(1.5f, repo.speechRate.first())
+                assertFalse(repo.hapticsEnabled.first())
+                assertEquals(HapticIntensity.STRONG, repo.hapticIntensity.first())
+                assertFalse(repo.earconsEnabled.first())
+            }
+            secondScope.cancel()
         }
     }
 }
