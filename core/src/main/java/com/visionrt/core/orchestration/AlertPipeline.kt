@@ -49,7 +49,7 @@ class AlertPipeline(
             // Interrupt only when the new alert is strictly more severe than
             // the one currently in flight. Equal priority means "let the
             // current phrase finish"; the cooldown gates the next emission.
-            if (current != null && alert.priority.ordinal > current.ordinal) {
+            if (current != null && alert.priority.rank > current.rank) {
                 feedback.interruptCurrent(alert.priority)
             }
             feedback.emit(alert)

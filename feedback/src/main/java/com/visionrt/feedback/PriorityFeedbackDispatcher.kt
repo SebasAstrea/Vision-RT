@@ -118,7 +118,7 @@ class PriorityFeedbackDispatcher(
                 // Preempt only when strictly more severe than what is in flight.
                 // Same-priority CRITICALs queue behind the current utterance so
                 // phrases are not cut mid-word (FR-006.3 + UX).
-                pending.removeAll { it.priority.ordinal > AlertPriority.CRITICAL_OBSTACLE.ordinal }
+                pending.removeAll { it.priority.rank > AlertPriority.CRITICAL_OBSTACLE.rank }
                 speaker.stop()
             }
             insertByPriority(alert)
@@ -133,7 +133,7 @@ class PriorityFeedbackDispatcher(
     override suspend fun interruptCurrent(priority: AlertPriority) {
         if (priority == AlertPriority.CRITICAL_OBSTACLE) {
             queueMutex.withLock {
-                pending.removeAll { it.priority.ordinal >= priority.ordinal }
+                pending.removeAll { it.priority.rank >= priority.rank }
             }
             speaker.stop()
             inFlightPriority.set(null)
@@ -155,9 +155,9 @@ class PriorityFeedbackDispatcher(
 
     private fun insertByPriority(alert: Alert) {
         val index = pending.indexOfFirst { existing ->
-            existing.priority.ordinal > alert.priority.ordinal ||
+            existing.priority.rank > alert.priority.rank ||
                 (
-                    existing.priority.ordinal == alert.priority.ordinal &&
+                    existing.priority.rank == alert.priority.rank &&
                         existing.createdAtMs > alert.createdAtMs
                     )
         }

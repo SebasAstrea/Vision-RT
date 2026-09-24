@@ -34,7 +34,7 @@ class FakeFeedbackPort : FeedbackPort {
     override suspend fun interruptCurrent(priority: AlertPriority) {
         _interrupts += priority
         val current = inFlight.get()
-        if (current != null && current.ordinal <= priority.ordinal) {
+        if (current != null && current.rank <= priority.rank) {
             inFlight.set(null)
         }
     }

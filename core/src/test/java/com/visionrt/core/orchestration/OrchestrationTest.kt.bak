@@ -40,12 +40,14 @@ class ModeControllerTest {
     fun rejectsIllegalTransitionAndKeepsState() = runTest {
         assertFalse(controller.onReady())
         assertEquals(OrchestrationState.IDLE, controller.current)
+        // IDLE cannot jump straight to DEGRADED (must go through STARTING).
         assertFalse(controller.degrade())
         assertEquals(OrchestrationState.IDLE, controller.current)
     }
 
     @Test
     fun onDemandModesAllowedFromIdle() = runTest {
+        // M5: FR-008 / FR-009 may start without continuous obstacle assistance.
         assertTrue(controller.enterObjectQuery())
         assertEquals(OrchestrationState.OBJECT_QUERY_ACTIVE, controller.current)
         assertTrue(controller.stopSession())
@@ -162,14 +164,12 @@ class ModeControllerTest {
 
 class AlertPolicyTest {
 
-    // Uses defaults from AlertPolicyConfig (cooldownMs = 4_000L, detailed = 2_000L)
     private val policy = AlertPolicy(
         AlertPolicyConfig(
             confidenceThreshold = 0.60f,
             highConfidenceThreshold = 0.80f,
             minStableFrames = 2,
-            cooldownMs = 4_000L,
-            detailedCooldownMs = 2_000L,
+            cooldownMs = 5_000L,
             cautionConfidenceThreshold = 0.70f,
         ),
     )
@@ -197,29 +197,15 @@ class AlertPolicyTest {
         assertEquals(1, policy.evaluate(listOf(person), nowMs = 0).size)
     }
 
-    // NEW CONTRACT: NEAR at or above confidenceThreshold (0.60) alerts immediately,
-    // even if below highConfidenceThreshold (0.80). A person already in the path
-    // must not wait another frame at 2.4 FPS.
     @Test
-    fun nearAtThresholdAlertsImmediately() {
+    fun nearButBelowHighConfidenceNeedsStableFrames() {
         val person = FakeDetections.of(
             "person",
             confidence = 0.75f,
             proximity = Proximity.NEAR,
         )
-        assertEquals(1, policy.evaluate(listOf(person), nowMs = 0).size)
-    }
-
-    // Below threshold, NEAR still needs stability.
-    @Test
-    fun nearBelowThresholdStillIgnored() {
-        val person = FakeDetections.of(
-            "person",
-            confidence = 0.55f,
-            proximity = Proximity.NEAR,
-        )
         assertTrue(policy.evaluate(listOf(person), nowMs = 0).isEmpty())
-        assertTrue(policy.evaluate(listOf(person), nowMs = 100).isEmpty())
+        assertEquals(1, policy.evaluate(listOf(person), nowMs = 100).size)
     }
 
     @Test
@@ -263,7 +249,7 @@ class AlertPolicyTest {
         policy.evaluate(listOf(person), nowMs = 0)
         assertEquals(1, policy.evaluate(listOf(person), nowMs = 100).size)
         policy.evaluate(listOf(person), nowMs = 200)
-        val afterCooldown = policy.evaluate(listOf(person), nowMs = 100 + 4_000L)
+        val afterCooldown = policy.evaluate(listOf(person), nowMs = 100 + 5_000L)
         assertEquals(1, afterCooldown.size)
     }
 
@@ -294,11 +280,8 @@ class AlertPolicyTest {
         assertTrue(second[0].caution)
     }
 
-    // NEW CONTRACT: sector is NOT part of the track key. A person walking
-    // across LEFT/CENTER/RIGHT is one object, not three. This prevents
-    // consecutiveFrames resetting every time the person crosses a boundary.
     @Test
-    fun differentSectorsShareTrack() {
+    fun differentSectorsTrackIndependently() {
         val left = FakeDetections.of(
             "chair",
             confidence = 0.90f,
@@ -309,13 +292,8 @@ class AlertPolicyTest {
             confidence = 0.90f,
             sector = HorizontalSector.RIGHT,
         )
-        // Two distinct objects (same label, different sector) at frame 0.
-        // Both pass confidence but need minStableFrames = 2.
-        assertTrue(policy.evaluate(listOf(left, right), nowMs = 0).isEmpty())
-        // Frame 1: same two objects. Now both are "stable" and both alert
-        // (only ONE track per label, so only the FIRST detection wins).
-        val second = policy.evaluate(listOf(left, right), nowMs = 100)
-        assertEquals(1, second.size)
+        policy.evaluate(listOf(left, right), nowMs = 0)
+        assertEquals(2, policy.evaluate(listOf(left, right), nowMs = 100).size)
     }
 
     @Test
@@ -323,25 +301,22 @@ class AlertPolicyTest {
         val person = FakeDetections.of("person", confidence = 0.90f)
         policy.evaluate(listOf(person), nowMs = 0)
         assertEquals(1, policy.evaluate(listOf(person), nowMs = 100).size)
-        // detailedCooldownMs = 2_000L, cooldownMs = 4_000L
-        // At 2_100 ms: detailed cooldown expired, normal still cooling.
         val detailedAfter = policy.evaluate(
             listOf(person),
-            nowMs = 2_100L,
+            nowMs = 1_700L,
             verbosity = Verbosity.DETAILED,
         )
         assertEquals(1, detailedAfter.size)
-        // Immediately after, detailed cooldown is active again.
+        policy.evaluate(listOf(person), nowMs = 1_750L, verbosity = Verbosity.DETAILED)
         val detailedWithin = policy.evaluate(
             listOf(person),
-            nowMs = 2_200L,
+            nowMs = 1_850L,
             verbosity = Verbosity.DETAILED,
         )
         assertTrue(detailedWithin.isEmpty())
-        // Normal still cooling (2_200 < 100 + 4_000 = 4_100).
         val normalStillCooling = policy.evaluate(
             listOf(person),
-            nowMs = 2_200L,
+            nowMs = 1_700L,
             verbosity = Verbosity.NORMAL,
         )
         assertTrue(normalStillCooling.isEmpty())
@@ -482,9 +457,6 @@ class AlertPipelineTest {
         lang = AlertLang.EN,
     )
 
-    // NEW CONTRACT: interruptCurrent is called only when the new alert is
-    // strictly more severe than the one in flight (alert.priority.ordinal >
-    // current.ordinal). STATUS < CRITICAL_OBSTACLE, so the interrupt fires.
     @Test
     fun criticalAlertInterruptsLowerPriorityThenEmits() = runTest {
         feedback.emit(
@@ -519,8 +491,6 @@ class AlertPipelineTest {
         assertTrue(feedback.emitted.any { it.message == "Person medium ahead." })
     }
 
-    // detailedCooldownMs = 2_000L. Alert emitted at 100ms. Re-alert at
-    // 100 + 2_000 = 2_100ms.
     @Test
     fun detailedVerbosityReAlertsAfterShortCooldown() = runTest {
         val person = FakeDetections.of("person", confidence = 0.90f)
@@ -528,11 +498,10 @@ class AlertPipelineTest {
         pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED)
         nowMs = 20
         assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED).size)
-        nowMs = 2_100L
+        nowMs = 1_700L
         assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED).size)
     }
 
-    // Normal cooldown = 4_000L. Alert at 100ms. At 2_100ms, still cooling.
     @Test
     fun normalVerbosityStillCooldownAtDetailedBoundary() = runTest {
         val person = FakeDetections.of("person", confidence = 0.90f)
@@ -540,7 +509,7 @@ class AlertPipelineTest {
         pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL)
         nowMs = 20
         assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL).size)
-        nowMs = 2_100L
+        nowMs = 1_700L
         assertTrue(pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL).isEmpty())
     }
 
@@ -600,7 +569,7 @@ class OrchestrationIntegrationTest {
         val frame2 = detector.detect().getOrThrow()
         assertTrue(pipeline.onFrame(frame2).isEmpty())
 
-        nowMs = 100 + 4_000L
+        nowMs = 100 + 5_000L
         detector.push(listOf(person))
         val frame3 = detector.detect().getOrThrow()
         assertEquals(1, pipeline.onFrame(frame3).size)
@@ -627,9 +596,6 @@ class OrchestrationIntegrationTest {
         assertTrue(feedback.messages().contains("Asistencia de obstáculos lista."))
     }
 
-    // NEW CONTRACT: OCR_RESULT < CRITICAL_OBSTACLE, so the CRITICAL does
-    // interrupt the OCR_RESULT and takes over. currentPriority() ends at
-    // CRITICAL_OBSTACLE.
     @Test
     fun criticalAlertInterruptsNonCriticalFeedback() = runTest {
         val feedback = FakeFeedbackPort()

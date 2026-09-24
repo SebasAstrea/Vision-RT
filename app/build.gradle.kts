@@ -14,8 +14,8 @@ android {
         applicationId = "com.visionrt.app"
         minSdk = 30
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.7.0-M7"
+        versionCode = 8
+        versionName = "0.8.0-beta.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
