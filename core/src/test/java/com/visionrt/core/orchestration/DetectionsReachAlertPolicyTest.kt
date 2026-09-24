@@ -22,7 +22,7 @@ class DetectionsReachAlertPolicyTest {
         val feedback = FakeFeedbackPort()
         val policy = AlertPolicy()
         var now = 1_000L
-        val pipeline = AlertPipeline(policy, feedback, clock = { now })
+        val pipeline = AlertPipeline(policy, feedback, clock = { now }, lang = AlertLang.EN)
         val source = FakeDetectionSource()
 
         val scene = listOf(

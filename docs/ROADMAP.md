@@ -122,6 +122,7 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 ## M0 — Project Foundation and Guardrails
 
 **Dates:** 2026-09-28 to 2026-10-09  
+**Status:** Done  
 **Goal:** Establish the technical and quality foundation.
 
 ### Deliverables
@@ -167,6 +168,7 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 ## M1 — Accessible App Shell and Safety Onboarding
 
 **Dates:** 2026-10-12 to 2026-10-30  
+**Status:** Done  
 **Goal:** Build the accessible application shell and mandatory safety onboarding.
 
 ### Deliverables
@@ -214,6 +216,7 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 ## M2 — Orchestration Core with Fake Perception
 
 **Dates:** 2026-11-02 to 2026-11-20  
+**Status:** In Progress  
 **Goal:** Implement the orchestration brain before integrating real models.
 
 ### Deliverables
@@ -275,6 +278,7 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 ## M3 — Camera Pipeline and Detector MVP
 
 **Dates:** 2026-11-23 to 2026-12-18  
+**Status:** Done  
 **Goal:** Integrate real camera capture and detector inference on low-end devices.
 
 ### Deliverables
@@ -342,6 +346,14 @@ Holiday note: Weeks of 2026-12-21 and 2026-12-28 are expected to have reduced ca
 - Initial benchmark report exists.
 - Model manifest is validated at startup.
 - Detection results reach AlertPolicy in integration tests.
+
+### Evidence (2026-09-24, SM-A226BR / R9WTC009YAW)
+
+- Installed `versionCode=3` / `0.3.0-M3` demo APK; app launched, no crash.
+- Detector benchmark (n=50, warmup=5): **p50=54 ms, p95=76 ms, p99=79 ms** (NFR-PE-002 budget 450 ms, pass=true). Logcat: `VisionRT/DetectorBenchmark`.
+- OR-001: startup classifies `profile=low_end` (`ramGb=3`, registry SM-A226BR); Settings shows *Perfil de gama baja*; Low-End frame interval 125 ms (≤8 FPS).
+- OR-003: PSS sampled during assistance sessions; peak/growth summary logged on stop via `VisionRT/MemoryBudgetMonitor`.
+- Quality gate: `testDebugUnitTest` **106 tests, 0 failures**; detekt + lintDebug green.
 
 ---
 
@@ -788,8 +800,8 @@ Before MVP 1.0 release, all of the following must be true:
 ### Performance
 
 - [ ] Peak memory <= 800 MB on reference devices.
-- [ ] Detector inference P95 <= 450 ms at 320x320.
-- [ ] End-to-end alert P95 <= 800 ms.
+- [x] Detector inference P95 <= 450 ms at 320x320. (2026-09-24 SM-A226BR: p95=76 ms, n=50)
+- [ ] End-to-end critical alert P95 <= 800 ms.
 - [ ] TTS start <= 500 ms after alert generation.
 - [ ] Haptic start <= 300 ms after alert generation.
 - [ ] OCR P95 <= 8 s.
@@ -913,10 +925,10 @@ Vision-RT MVP 1.0 is successful if:
 
 | Milestone | Target Date | Status |
 |---|---:|---|
-| M0 complete | 2026-10-09 | Planned |
-| M1 complete | 2026-10-30 | Planned |
-| M2 complete | 2026-11-20 | Planned |
-| M3 complete | 2026-12-18 | Planned |
+| M0 complete | 2026-10-09 | Done |
+| M1 complete | 2026-10-30 | Done |
+| M2 complete | 2026-11-20 | In Progress |
+| M3 complete | 2026-12-18 | Done |
 | M4 complete | 2027-01-08 | Planned |
 | M5 complete | 2027-01-29 | Planned |
 | M6 complete | 2027-02-12 | Planned |

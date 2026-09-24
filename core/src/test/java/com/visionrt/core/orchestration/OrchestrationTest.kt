@@ -18,7 +18,7 @@ class ModeControllerTest {
 
     private val feedback = FakeFeedbackPort()
     private var nowMs = 1_000L
-    private val controller = ModeController(feedback) { nowMs }
+    private val controller = ModeController(feedback, { nowMs }, AlertLang.EN)
 
     @Test
     fun startsIdle() {
@@ -174,6 +174,27 @@ class AlertPolicyTest {
     }
 
     @Test
+    fun nearHighConfidenceAlertsOnFirstFrame() {
+        val person = FakeDetections.of(
+            "person",
+            confidence = 0.90f,
+            proximity = Proximity.NEAR,
+        )
+        assertEquals(1, policy.evaluate(listOf(person), nowMs = 0).size)
+    }
+
+    @Test
+    fun nearButBelowHighConfidenceNeedsStableFrames() {
+        val person = FakeDetections.of(
+            "person",
+            confidence = 0.75f,
+            proximity = Proximity.NEAR,
+        )
+        assertTrue(policy.evaluate(listOf(person), nowMs = 0).isEmpty())
+        assertEquals(1, policy.evaluate(listOf(person), nowMs = 100).size)
+    }
+
+    @Test
     fun twoConsecutiveFramesProduceCandidate() {
         val person = FakeDetections.of("person", confidence = 0.90f)
         assertTrue(policy.evaluate(listOf(person), nowMs = 0).isEmpty())
@@ -262,6 +283,26 @@ class AlertPolicyTest {
     }
 
     @Test
+    fun detailedCooldownAllowsReAlertSoonerThanNormal() {
+        val person = FakeDetections.of("person", confidence = 0.90f)
+        policy.evaluate(listOf(person), nowMs = 0)
+        assertEquals(1, policy.evaluate(listOf(person), nowMs = 100).size)
+        val detailedAfter = policy.evaluate(
+            listOf(person),
+            nowMs = 2_100L,
+            verbosity = Verbosity.DETAILED,
+        )
+        assertEquals(1, detailedAfter.size)
+        policy.evaluate(listOf(person), nowMs = 2_200L, verbosity = Verbosity.DETAILED)
+        val detailedWithin = policy.evaluate(
+            listOf(person),
+            nowMs = 2_300L,
+            verbosity = Verbosity.DETAILED,
+        )
+        assertTrue(detailedWithin.isEmpty())
+    }
+
+    @Test
     fun resetClearsAllTracks() {
         val person = FakeDetections.of("person", confidence = 0.90f)
         policy.evaluate(listOf(person), nowMs = 0)
@@ -280,7 +321,7 @@ class TemplateComposerTest {
             sector = HorizontalSector.CENTER,
             proximity = Proximity.MEDIUM,
         )
-        assertEquals("Person medium ahead.", TemplateComposer.compose(detection))
+        assertEquals("Person medium ahead.", TemplateComposer.compose(detection, lang = AlertLang.EN))
     }
 
     @Test
@@ -290,14 +331,17 @@ class TemplateComposerTest {
             sector = HorizontalSector.LEFT,
             proximity = Proximity.UNKNOWN,
         )
-        assertEquals("Chair on left.", TemplateComposer.compose(detection))
+        assertEquals("Chair on left.", TemplateComposer.compose(detection, lang = AlertLang.EN))
     }
 
     @Test
     fun cautiousMessageIsPossibleObstacle() {
         assertEquals("Possible obstacle.", TemplateComposer.CAUTIOUS_MESSAGE)
         val detection = FakeDetections.of("person", confidence = 0.65f)
-        assertEquals("Possible obstacle.", TemplateComposer.compose(detection, caution = true))
+        assertEquals(
+            "Possible obstacle.",
+            TemplateComposer.compose(detection, caution = true, lang = AlertLang.EN),
+        )
     }
 
     @Test
@@ -307,7 +351,7 @@ class TemplateComposerTest {
             sector = HorizontalSector.CENTER,
             proximity = Proximity.NEAR,
         )
-        assertEquals("Obstacle near ahead.", TemplateComposer.compose(detection))
+        assertEquals("Obstacle near ahead.", TemplateComposer.compose(detection, lang = AlertLang.EN))
     }
 
     @Test
@@ -317,7 +361,25 @@ class TemplateComposerTest {
             sector = HorizontalSector.RIGHT,
             proximity = Proximity.FAR,
         )
-        assertEquals("Door far on right.", TemplateComposer.compose(detection))
+        assertEquals("Door far on right.", TemplateComposer.compose(detection, lang = AlertLang.EN))
+    }
+
+    @Test
+    fun spanishPersonNearCenterUsesSpanishLabels() {
+        val detection = FakeDetections.of(
+            "person",
+            sector = HorizontalSector.CENTER,
+            proximity = Proximity.NEAR,
+        )
+        assertEquals(
+            "Persona cerca delante.",
+            TemplateComposer.compose(detection, lang = AlertLang.ES),
+        )
+    }
+
+    @Test
+    fun spanishCautiousIsPosibleObstaculo() {
+        assertEquals("Posible obstáculo.", TemplateComposer.cautiousMessage(AlertLang.ES))
     }
 
     @Test
@@ -327,13 +389,15 @@ class TemplateComposerTest {
             FakeDetections.of("bicycle", sector = HorizontalSector.LEFT, proximity = Proximity.MEDIUM),
             FakeDetections.of("generic obstacle", sector = HorizontalSector.RIGHT, proximity = Proximity.FAR),
         )
-        samples.forEach { detection ->
-            val words = TemplateComposer.compose(detection)
-                .trim('.')
-                .split(Regex("\\s+"))
-                .filter { it.isNotBlank() }
-                .size
-            assertTrue("too many words: $words", words <= TemplateComposer.MAX_ALERT_WORDS)
+        AlertLang.entries.forEach { lang ->
+            samples.forEach { detection ->
+                val words = TemplateComposer.compose(detection, lang = lang)
+                    .trim('.')
+                    .split(Regex("\\s+"))
+                    .filter { it.isNotBlank() }
+                    .size
+                assertTrue("too many words ($lang): $words", words <= TemplateComposer.MAX_ALERT_WORDS)
+            }
         }
     }
 
@@ -344,7 +408,7 @@ class TemplateComposerTest {
             sector = HorizontalSector.CENTER,
             proximity = Proximity.UNKNOWN,
         )
-        assertEquals("Obstacle ahead.", TemplateComposer.compose(detection))
+        assertEquals("Obstacle ahead.", TemplateComposer.compose(detection, lang = AlertLang.EN))
     }
 
     @Test
@@ -355,7 +419,7 @@ class TemplateComposerTest {
             priority = com.visionrt.core.domain.AlertPriority.CRITICAL_OBSTACLE,
             caution = true,
         )
-        assertEquals("Possible obstacle.", TemplateComposer.compose(candidate))
+        assertEquals("Possible obstacle.", TemplateComposer.compose(candidate, lang = AlertLang.EN))
     }
 }
 
@@ -370,6 +434,7 @@ class AlertPipelineTest {
         feedback = feedback,
         clock = { nowMs },
         idSource = { ++idSeq },
+        lang = AlertLang.EN,
     )
 
     @Test
@@ -388,7 +453,9 @@ class AlertPipelineTest {
         nowMs = 20
         val alerts = pipeline.onFrame(listOf(person))
         assertEquals(1, alerts.size)
-        assertTrue(feedback.interrupts.contains(com.visionrt.core.domain.AlertPriority.USER_REQUESTED))
+        assertTrue(
+            feedback.interrupts.contains(com.visionrt.core.domain.AlertPriority.CRITICAL_OBSTACLE),
+        )
         assertEquals("Person medium ahead.", alerts[0].message)
         assertEquals(com.visionrt.core.domain.AlertPriority.CRITICAL_OBSTACLE, alerts[0].priority)
     }
@@ -402,6 +469,28 @@ class AlertPipelineTest {
         val alerts = pipeline.onFrame(listOf(person), verbosity = Verbosity.MINIMAL)
         assertEquals(1, alerts.size)
         assertTrue(feedback.emitted.any { it.message == "Person medium ahead." })
+    }
+
+    @Test
+    fun detailedVerbosityReAlertsAfterShortCooldown() = runTest {
+        val person = FakeDetections.of("person", confidence = 0.90f)
+        nowMs = 10
+        pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED)
+        nowMs = 20
+        assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED).size)
+        nowMs = 2_100L
+        assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED).size)
+    }
+
+    @Test
+    fun normalVerbosityStillCooldownAtDetailedBoundary() = runTest {
+        val person = FakeDetections.of("person", confidence = 0.90f)
+        nowMs = 10
+        pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL)
+        nowMs = 20
+        assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL).size)
+        nowMs = 2_100L
+        assertTrue(pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL).isEmpty())
     }
 
     @Test
@@ -432,8 +521,8 @@ class OrchestrationIntegrationTest {
         var nowMs = 0L
         var idSeq = 0L
         val policy = AlertPolicy()
-        val pipeline = AlertPipeline(policy, feedback, { nowMs }, { ++idSeq })
-        val modes = ModeController(feedback) { nowMs }
+        val pipeline = AlertPipeline(policy, feedback, { nowMs }, { ++idSeq }, AlertLang.EN)
+        val modes = ModeController(feedback, { nowMs }, AlertLang.EN)
 
         assertTrue(modes.start())
         assertTrue(modes.onReady())
@@ -449,12 +538,7 @@ class OrchestrationIntegrationTest {
         detector.push(listOf(person))
         val frame1 = detector.detect().getOrThrow()
         nowMs = 100
-        assertTrue(pipeline.onFrame(frame1).isEmpty())
-
-        detector.push(listOf(person))
-        val frame2 = detector.detect().getOrThrow()
-        nowMs = 200
-        val alerts = pipeline.onFrame(frame2)
+        val alerts = pipeline.onFrame(frame1)
         assertEquals(1, alerts.size)
         assertEquals("Person near ahead.", alerts[0].message)
         assertTrue(feedback.emitted.any { it.message == "Person near ahead." })
@@ -462,13 +546,13 @@ class OrchestrationIntegrationTest {
 
         nowMs = 300
         detector.push(listOf(person))
-        val frame3 = detector.detect().getOrThrow()
-        assertTrue(pipeline.onFrame(frame3).isEmpty())
+        val frame2 = detector.detect().getOrThrow()
+        assertTrue(pipeline.onFrame(frame2).isEmpty())
 
-        nowMs = 200 + 5_000L
+        nowMs = 100 + 5_000L
         detector.push(listOf(person))
-        val frame4 = detector.detect().getOrThrow()
-        assertEquals(1, pipeline.onFrame(frame4).size)
+        val frame3 = detector.detect().getOrThrow()
+        assertEquals(1, pipeline.onFrame(frame3).size)
 
         ocr.stageText("EXIT")
         assertEquals(Result.success("EXIT"), ocr.recognize())
@@ -482,12 +566,23 @@ class OrchestrationIntegrationTest {
     }
 
     @Test
+    fun spanishLocaleAnnouncesInSpanish() = runTest {
+        val feedback = FakeFeedbackPort()
+        var nowMs = 0L
+        val modes = ModeController(feedback, { nowMs }, AlertLang.ES)
+        assertTrue(modes.start())
+        assertTrue(modes.onReady())
+        assertTrue(feedback.messages().contains("Iniciando asistencia."))
+        assertTrue(feedback.messages().contains("Asistencia de obstáculos lista."))
+    }
+
+    @Test
     fun criticalAlertInterruptsNonCriticalFeedback() = runTest {
         val feedback = FakeFeedbackPort()
         val policy = AlertPolicy()
         var nowMs = 0L
         var idSeq = 0L
-        val pipeline = AlertPipeline(policy, feedback, { nowMs }, { ++idSeq })
+        val pipeline = AlertPipeline(policy, feedback, { nowMs }, { ++idSeq }, AlertLang.EN)
 
         feedback.emit(
             com.visionrt.core.domain.Alert(

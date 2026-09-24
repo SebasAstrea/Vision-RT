@@ -10,14 +10,16 @@ import com.visionrt.core.domain.Verbosity
  * emits the resulting [Alert]s on the [FeedbackPort] (M2 end-to-end path).
  *
  * [Verbosity.MINIMAL] only forwards critical obstacle alerts (FR-006.6).
- * Critical obstacles interrupt lower-priority in-flight feedback before emit
- * (FR-006.3 / OR-009).
+ * [Verbosity.DETAILED] uses a shorter cooldown and may emit longer phrases
+ * (FR-006.2/5). Critical obstacles interrupt lower-priority in-flight feedback
+ * before emit (FR-006.3 / OR-009).
  */
 class AlertPipeline(
     private val policy: AlertPolicy,
     private val feedback: FeedbackPort,
     private val clock: () -> Long = { System.currentTimeMillis() },
     private val idSource: () -> Long = { clock() },
+    private val lang: AlertLang = AlertLang.current(),
 ) {
     /** Clears policy cooldowns/tracks for a new assistance session. */
     fun resetPolicy() {
@@ -29,20 +31,20 @@ class AlertPipeline(
         verbosity: Verbosity = Verbosity.NORMAL,
         motionEvidence: Boolean = false,
     ): List<Alert> {
-        val candidates = policy.evaluate(detections, clock(), motionEvidence)
+        val candidates = policy.evaluate(detections, clock(), motionEvidence, verbosity)
         val alerts = candidates
             .filter { verbosity != Verbosity.MINIMAL || it.priority == AlertPriority.CRITICAL_OBSTACLE }
             .map { candidate ->
                 Alert(
                     id = "alert-${idSource()}",
                     priority = candidate.priority,
-                    message = TemplateComposer.compose(candidate),
+                    message = TemplateComposer.compose(candidate, lang),
                     createdAtMs = clock(),
                 )
             }
         alerts.forEach { alert ->
             if (alert.priority == AlertPriority.CRITICAL_OBSTACLE) {
-                feedback.interruptCurrent(AlertPriority.USER_REQUESTED)
+                feedback.interruptCurrent(AlertPriority.CRITICAL_OBSTACLE)
             }
             feedback.emit(alert)
         }

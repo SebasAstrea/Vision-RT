@@ -58,6 +58,22 @@
         </RadioGroup>
 
         <TextView
+            android:id="@+id/section_device_profile"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_device_profile" />
+
+        <TextView
+            android:id="@+id/device_profile_value"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_device_profile" />
+
+        <TextView
             android:id="@+id/section_replay"
             style="@style/VisionRT.TextView.Section"
             android:layout_width="match_parent"
@@ -78,6 +94,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:contentDescription="@string/settings_replay_training"
             android:text="@string/settings_replay_training" />
+
+        <TextView
+            android:id="@+id/section_benchmark"
+            style="@style/VisionRT.TextView.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_run_benchmark" />
+
+        <TextView
+            android:id="@+id/benchmark_desc"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_run_benchmark_desc" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/run_benchmark_button"
+            style="@style/VisionRT.Button.Large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/settings_run_benchmark"
+            android:text="@string/settings_run_benchmark" />
+
+        <TextView
+            android:id="@+id/benchmark_result"
+            style="@style/VisionRT.TextView.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="" />
     </LinearLayout>
 </ScrollView>

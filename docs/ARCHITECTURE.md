@@ -819,6 +819,17 @@ Primary approach:
 - Calibration dataset representative of target environments.
 - QAT considered if post-training quantization accuracy loss is excessive.
 
+Validated MVP recipe (M3):
+
+- Post-training **dynamic INT8** (`dynamic_wi8_afp32`): int8 weights, float32
+  activations. Asset: `yolov8n_320_int8.tflite` (~4.1 MB, under the 20 MB
+  budget). IO stays float32 NCHW so the LiteRT adapter needs no int8 input path.
+- Static full-integer (`static_wi8_ai8`) was attempted on this graph: with
+  asymmetric activations the model fails to prepare (`CONV_2D` zero_point);
+  with symmetric activations it runs but collapses class scores to 0. QAT or a
+  fixed static recipe remains M7 validation work.
+- Float source retained at `yolov8n_320_float32.tflite` for parity checks.
+
 Fallback:
 
 - FP16 if INT8 accuracy drops below acceptance thresholds.
@@ -1061,6 +1072,13 @@ The app shall monitor:
 - Java heap pressure.
 - Low-memory callbacks.
 - Model loading memory spikes.
+
+**Implementation (M3):** `MemoryBudgetMonitor` (core) tracks baseline, peak PSS
+and growth against OR-003 budgets (peak ≤ 800 MB, growth ≤ 10%). The app
+samples PSS every ~5 s while obstacle assistance is active
+(`AndroidMemoryMonitor` / `ObstacleAssistanceCoordinator`) and logs a
+payload-free summary on stop. `Application.onTrimMemory` is forwarded through
+`MemoryPressureBus` so low-memory signals can stop non-essential work (AC5).
 
 ### 16.3 Memory degradation actions
 

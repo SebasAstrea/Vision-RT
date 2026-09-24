@@ -11,6 +11,11 @@ data class AlertPolicyConfig(
     val cooldownMs: Long = 5_000L,
     /** Below this confidence (but >= [confidenceThreshold]) use cautious wording. */
     val cautionConfidenceThreshold: Float = 0.70f,
+    /**
+     * DETAILED verbosity shortens cooldown so the user is not left in silence
+     * after a couple of phrases (FR-006.5 / UX-004).
+     */
+    val detailedCooldownMs: Long = 2_000L,
 ) {
     init {
         require(confidenceThreshold in 0f..1f)
@@ -19,5 +24,9 @@ data class AlertPolicyConfig(
         require(highConfidenceThreshold >= cautionConfidenceThreshold)
         require(minStableFrames >= 1)
         require(cooldownMs >= 0L)
+        require(detailedCooldownMs in 0L..cooldownMs)
     }
+
+    fun cooldownFor(detailed: Boolean): Long =
+        if (detailed) detailedCooldownMs else cooldownMs
 }

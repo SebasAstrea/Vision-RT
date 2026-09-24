@@ -17,11 +17,15 @@ import kotlin.math.min
  */
 object DetectionPostProcessor {
 
-    /** Fraction of frame area at/above which a box counts as NEAR. */
-    const val NEAR_AREA_FRACTION = 0.20f
+    /**
+     * Fraction of frame area at/which a box counts as NEAR.
+     * Lowered from 0.20 so proximity escalates before the object fills the
+     * frame (user was only warned when the obstacle was already too close).
+     */
+    const val NEAR_AREA_FRACTION = 0.10f
 
     /** Fraction of frame area at/above which a box counts as MEDIUM. */
-    const val MEDIUM_AREA_FRACTION = 0.05f
+    const val MEDIUM_AREA_FRACTION = 0.03f
 
     /** Horizontal sector split points on normalized center-x. */
     const val LEFT_MAX_CX = 1f / 3f

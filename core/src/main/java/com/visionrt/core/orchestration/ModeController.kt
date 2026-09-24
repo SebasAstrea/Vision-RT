@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 class ModeController(
     private val feedback: FeedbackPort,
     private val clock: () -> Long = { System.currentTimeMillis() },
+    lang: AlertLang = AlertLang.current(),
 ) {
-    private val announcer = StateAnnouncer(feedback, clock)
+    private val announcer = StateAnnouncer(feedback, clock, lang)
     private val _state = MutableStateFlow(OrchestrationState.IDLE)
     val state: StateFlow<OrchestrationState> = _state.asStateFlow()
 

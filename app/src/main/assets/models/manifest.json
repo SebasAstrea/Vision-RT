@@ -2,7 +2,7 @@
   "model_id": "yolov8n-accessibility",
   "version": "1.0.0",
   "runtime": "litert",
-  "quantization": "float32",
+  "quantization": "int8",
   "input_width": 320,
   "input_height": 320,
   "classes": [
@@ -90,6 +90,6 @@
   "confidence_threshold": 0.6,
   "nms_iou_threshold": 0.45,
   "max_detections": 10,
-  "checksum": "sha256:0ae6fa4e2b808eb97815e804ba1f5df28f5931758cafe004566d5264df33f7a9",
-  "model_asset": "yolov8n_320_float32.tflite"
+  "checksum": "sha256:793eac3c43f244f96ed66c32b189f874d5914ea85b35fc11172e0004e9ec5ada",
+  "model_asset": "yolov8n_320_int8.tflite"
 }

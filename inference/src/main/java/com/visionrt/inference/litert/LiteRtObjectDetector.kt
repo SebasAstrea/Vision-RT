@@ -27,6 +27,7 @@ import org.tensorflow.lite.Interpreter
  *
  * - Loads assets under [MODEL_ASSET_DIR] validated by [ModelManifestJson].
  * - Input: float32 `[1, 3, H, W]` NCHW in [0,1] (XNNPACK CPU).
+ * - Asset is INT8 weights with float activations (dynamic wi8); IO stays float.
  * - Output: uses the detection head `[1, 4+C, N]` (ultralytics export may
  *   expose extra feature-map outputs; only the flat head is consumed).
  * - Off-main-thread load/detect/unload via Dispatchers.Default + [lock]
@@ -210,6 +211,6 @@ class LiteRtObjectDetector(
         private const val BOX_DIMS = 4
         const val MODEL_ASSET_DIR = "models"
         const val MANIFEST_ASSET = "$MODEL_ASSET_DIR/manifest.json"
-        const val DEFAULT_MODEL_ASSET = "yolov8n_320_float32.tflite"
+        const val DEFAULT_MODEL_ASSET = "yolov8n_320_int8.tflite"
     }
 }

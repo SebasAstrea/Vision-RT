@@ -3,6 +3,7 @@ package com.visionrt.core.orchestration
 import com.visionrt.core.domain.AlertPriority
 import com.visionrt.core.domain.Detection
 import com.visionrt.core.domain.Proximity
+import com.visionrt.core.domain.Verbosity
 
 /**
  * A detection that passed confidence, temporal persistence and cooldown checks
@@ -21,12 +22,11 @@ data class AlertCandidate(
  * Rules (OR-008):
  * 1. Confidence must reach [AlertPolicyConfig.confidenceThreshold].
  * 2. A critical alert needs [AlertPolicyConfig.minStableFrames] consecutive
- *    frames, or a single high-confidence frame plus motion evidence.
- * 3. The same object key is suppressed for [AlertPolicyConfig.cooldownMs]
- *    unless proximity risk increases (FR-006.4).
- *
- * Object identity for fusion uses label + sector (detector IDs are not stable
- * across frames).
+ *    frames, or a single high-confidence frame plus motion evidence, or a
+ *    single high-confidence NEAR detection (object already in the path —
+ *    waiting another frame at 8 FPS delays the alert until it is too close).
+ * 3. The same object key is suppressed for the verbosity cooldown unless
+ *    proximity risk increases (FR-006.4).
  */
 class AlertPolicy(
     private val config: AlertPolicyConfig = AlertPolicyConfig(),
@@ -44,7 +44,9 @@ class AlertPolicy(
         detections: List<Detection>,
         nowMs: Long,
         motionEvidence: Boolean = false,
+        verbosity: Verbosity = Verbosity.NORMAL,
     ): List<AlertCandidate> {
+        val cooldownMs = config.cooldownFor(detailed = verbosity == Verbosity.DETAILED)
         val frameKeys = mutableSetOf<String>()
         val candidates = mutableListOf<AlertCandidate>()
         detections.forEach { detection ->
@@ -55,7 +57,7 @@ class AlertPolicy(
             track.consecutiveFrames =
                 if (key in previousFrameKeys) track.consecutiveFrames + 1 else 1
             if (isStable(track, detection, motionEvidence) &&
-                cooldownAllows(track, detection, nowMs)
+                cooldownAllows(track, detection, nowMs, cooldownMs)
             ) {
                 track.lastAlertAtMs = nowMs
                 track.lastAlertProximity = detection.proximity
@@ -79,17 +81,30 @@ class AlertPolicy(
     private fun fusionKey(detection: Detection): String =
         "${detection.label.lowercase()}@${detection.sector}"
 
-    private fun isStable(track: Track, detection: Detection, motionEvidence: Boolean): Boolean =
-        track.consecutiveFrames >= config.minStableFrames ||
+    private fun isStable(track: Track, detection: Detection, motionEvidence: Boolean): Boolean {
+        // Near + high confidence: alert on the first frame so the user is not
+        // warned only after the object is already "on top of" the camera.
+        if (detection.proximity == Proximity.NEAR &&
+            detection.confidence >= config.highConfidenceThreshold
+        ) {
+            return true
+        }
+        return track.consecutiveFrames >= config.minStableFrames ||
             (
                 track.consecutiveFrames >= 1 &&
                     detection.confidence >= config.highConfidenceThreshold &&
                     motionEvidence
                 )
+    }
 
-    private fun cooldownAllows(track: Track, detection: Detection, nowMs: Long): Boolean {
+    private fun cooldownAllows(
+        track: Track,
+        detection: Detection,
+        nowMs: Long,
+        cooldownMs: Long,
+    ): Boolean {
         if (track.lastAlertAtMs == Long.MIN_VALUE) return true
-        val withinCooldown = nowMs - track.lastAlertAtMs < config.cooldownMs
+        val withinCooldown = nowMs - track.lastAlertAtMs < cooldownMs
         return !withinCooldown || proximityRiskIncreased(track.lastAlertProximity, detection.proximity)
     }
 

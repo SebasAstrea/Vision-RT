@@ -64,6 +64,16 @@
     <string name="settings_verbosity_announce">Alert detail level: %1$s.</string>
     <string name="settings_replay_training">Review the training</string>
     <string name="settings_replay_training_desc">Open the introductory screens again at any time.</string>
+    <string name="settings_device_profile">Device profile</string>
+    <string name="settings_device_profile_low_end">Low-End Profile</string>
+    <string name="settings_device_profile_standard">Standard Profile</string>
+    <string name="settings_run_benchmark">Run detector benchmark</string>
+    <string name="settings_run_benchmark_desc">Measures detector inference latency on this device. Stop assistance first. Results also appear in logcat.</string>
+    <string name="settings_benchmark_running">Running detector benchmark. This can take about a minute.</string>
+    <string name="settings_benchmark_done">Benchmark finished. Median %1$s milliseconds, P95 %2$s milliseconds, P99 %3$s milliseconds. Within the 450 millisecond budget.</string>
+    <string name="settings_benchmark_over_budget">Benchmark finished. Median %1$s milliseconds, P95 %2$s milliseconds, P99 %3$s milliseconds. Above the 450 millisecond budget.</string>
+    <string name="settings_benchmark_failed">Benchmark failed: %1$s</string>
+    <string name="settings_benchmark_failed_generic">unknown error</string>
 
     <!-- Screen narration and tap confirmation (UX-001, FR-010) -->
     <string name="narrator_from_top">From the top of the screen to the bottom:</string>
