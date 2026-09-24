@@ -13,9 +13,10 @@ data class AlertPolicyConfig(
     val cautionConfidenceThreshold: Float = 0.70f,
     /**
      * DETAILED verbosity shortens cooldown so the user is not left in silence
-     * after a couple of phrases (FR-006.5 / UX-004).
+     * after a couple of phrases (FR-006.5 / UX-004). User-tuned to 1.5s on
+     * SM-A226BR after field feedback (2s still felt laggy).
      */
-    val detailedCooldownMs: Long = 2_000L,
+    val detailedCooldownMs: Long = 1_500L,
 ) {
     init {
         require(confidenceThreshold in 0f..1f)

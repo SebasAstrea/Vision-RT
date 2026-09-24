@@ -650,7 +650,7 @@ Default thresholds must be configurable for QA but not hidden from diagnostics.
 |---|---:|
 | Detector confidence threshold | 0.60 |
 | Minimum frames for stable alert | 2 |
-| Alert cooldown for same object | 5 seconds |
+| Alert cooldown for same object | 5 seconds (NORMAL/MINIMAL); 1.5 seconds in DETAILED (user-tuned) |
 | OCR idle unload timeout | 30 seconds |
 | Thermal moderate action | Reduce FPS >= 50% |
 | Thermal severe action | Stop continuous detection |

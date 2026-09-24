@@ -289,17 +289,23 @@ class AlertPolicyTest {
         assertEquals(1, policy.evaluate(listOf(person), nowMs = 100).size)
         val detailedAfter = policy.evaluate(
             listOf(person),
-            nowMs = 2_100L,
+            nowMs = 1_700L,
             verbosity = Verbosity.DETAILED,
         )
         assertEquals(1, detailedAfter.size)
-        policy.evaluate(listOf(person), nowMs = 2_200L, verbosity = Verbosity.DETAILED)
+        policy.evaluate(listOf(person), nowMs = 1_750L, verbosity = Verbosity.DETAILED)
         val detailedWithin = policy.evaluate(
             listOf(person),
-            nowMs = 2_300L,
+            nowMs = 1_850L,
             verbosity = Verbosity.DETAILED,
         )
         assertTrue(detailedWithin.isEmpty())
+        val normalStillCooling = policy.evaluate(
+            listOf(person),
+            nowMs = 1_700L,
+            verbosity = Verbosity.NORMAL,
+        )
+        assertTrue(normalStillCooling.isEmpty())
     }
 
     @Test
@@ -478,7 +484,7 @@ class AlertPipelineTest {
         pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED)
         nowMs = 20
         assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED).size)
-        nowMs = 2_100L
+        nowMs = 1_700L
         assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.DETAILED).size)
     }
 
@@ -489,7 +495,7 @@ class AlertPipelineTest {
         pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL)
         nowMs = 20
         assertEquals(1, pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL).size)
-        nowMs = 2_100L
+        nowMs = 1_700L
         assertTrue(pipeline.onFrame(listOf(person), verbosity = Verbosity.NORMAL).isEmpty())
     }
 
