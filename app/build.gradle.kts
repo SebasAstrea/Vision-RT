@@ -25,16 +25,14 @@ android {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                          "proguard-rules.pro"
             )
         }
-        // Installable debug-like APK without src/debug's HiltTestApplication
-        // override (that override is required only for connectedAndroidTest).
-        create("demo") {
-            initWith(getByName("debug"))
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks += listOf("debug")
-        }
+        // No "demo" build type: debug is now clean because hilt-android-testing
+        // lives only in androidTestImplementation (see dependencies below).
+        // The previous debugImplementation of hilt-android-testing pulled
+        // HiltTestApplication's AndroidManifest into the debug APK, causing
+        // "The component was not created" crashes at runtime.
     }
 
     compileOptions {
@@ -73,24 +71,21 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.57.2")
     kapt("com.google.dagger:hilt-android-compiler:2.57.2")
 
-    // Makes HiltTestApplication (declared in src/debug/AndroidManifest.xml for
-    // @HiltAndroidTest instrumented tests) resolvable to lint and the debug build.
-    debugImplementation("com.google.dagger:hilt-android-testing:2.57.2")
-    // hilt-android-testing pulls androidx.test:core 1.4.0; consistent-resolution
-    // would then clash with the 1.7.0 required by androidTest deps. Upgrade it.
-    debugImplementation("androidx.test:core:1.7.0")
     testImplementation("junit:junit:4.13.2")
 
-    // Explicit hamcrest for the instrumented test APK: with the debug variant now
-    // bundling androidx.test via hilt-android-testing, consistent resolution can
-    // drop the hamcrest org.hamcrest.Matchers the Espresso runner expects.
-    androidTestImplementation("org.hamcrest:hamcrest:2.2")
+    // Instrumented tests only: HiltTestApplication is injected into the test
+    // APK, not the app APK. Keeping this out of the debug variant is what
+    // fixes the "The component was not created" crash on debug launches.
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
 
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test:core:1.7.0")
     androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-accessibility:3.7.0")
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+
+    // Explicit hamcrest for the instrumented test APK: consistent resolution
+    // can drop the org.hamcrest.Matchers the Espresso runner expects.
+    androidTestImplementation("org.hamcrest:hamcrest:2.2")
 }

@@ -33,23 +33,27 @@ class AlertPipeline(
     ): List<Alert> {
         val candidates = policy.evaluate(detections, clock(), motionEvidence, verbosity)
         val alerts = candidates
-            .filter { verbosity != Verbosity.MINIMAL || it.priority == AlertPriority.CRITICAL_OBSTACLE }
-            .map { candidate ->
-                Alert(
-                    id = "alert-${idSource()}",
-                    priority = candidate.priority,
-                    message = TemplateComposer.compose(candidate, lang),
-                    createdAtMs = clock(),
-                    sector = candidate.detection.sector,
-                    proximity = candidate.detection.proximity,
-                )
-            }
+        .filter { verbosity != Verbosity.MINIMAL || it.priority == AlertPriority.CRITICAL_OBSTACLE }
+        .map { candidate ->
+            Alert(
+                id = "alert-${idSource()}",
+                  priority = candidate.priority,
+                  message = TemplateComposer.compose(candidate, lang),
+                  createdAtMs = clock(),
+                  sector = candidate.detection.sector,
+                  proximity = candidate.detection.proximity,
+            )
+        }
+
         alerts.forEach { alert ->
-            if (alert.priority == AlertPriority.CRITICAL_OBSTACLE) {
-                feedback.interruptCurrent(AlertPriority.CRITICAL_OBSTACLE)
+            val current = feedback.currentPriority()
+            // Interrupt only when the new alert is strictly more severe than the
+            // one currently in flight. Equal priority means "let the current phrase
+            // finish"; the cooldown will gate the next emission.
+            if (current != null && alert.priority.ordinal > current.ordinal) {
+                feedback.interruptCurrent(alert.priority)
             }
             feedback.emit(alert)
         }
         return alerts
     }
-}

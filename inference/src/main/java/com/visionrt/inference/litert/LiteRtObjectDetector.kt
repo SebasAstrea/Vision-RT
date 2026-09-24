@@ -141,6 +141,19 @@ class LiteRtObjectDetector(
 
                     val outputs = hashMapOf<Int, Any>(detIndex to output)
                     interp.runForMultipleInputsOutputs(arrayOf(inputTensor), outputs)
+                    var maxScore = 0f
+                    var aboveThreshold = 0
+                    for (c in 4 until output[0].size) {   // c=0..3 son box coords
+                        for (a in 0 until output[0][c].size) {
+                            val v = output[0][c][a]
+                            if (v > maxScore) maxScore = v
+                                if (v >= m.confidenceThreshold) aboveThreshold++
+                        }
+                    }
+                    SafeLogger.i(
+                        TAG,
+                        "detect: maxScore=${"%.4f".format(maxScore)} above=${aboveThreshold} frame=${frame.timestampMs}"
+                    )
 
                     val channels = output[0].size
                     val anchors = output[0][0].size

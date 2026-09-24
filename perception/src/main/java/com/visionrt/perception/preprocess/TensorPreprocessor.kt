@@ -19,6 +19,12 @@ class TensorPreprocessor(
     private val greenOffset = 1
     private val blueOffset = 2
     private val bluePlane = 2
+    @Volatile var lastScale: Float = 1f
+    private set
+    @Volatile var lastPadX: Float = 0f
+    private set
+    @Volatile var lastPadY: Float = 0f
+    private set
 
     val inputSize: Int = RGB_CHANNELS * planeSize
 
@@ -40,25 +46,54 @@ class TensorPreprocessor(
     }
 
     private fun fill(rgb: ByteArray, srcW: Int, srcH: Int, output: FloatArray) {
-        val scaleW = srcW.toFloat() / outWidth
-        val scaleH = srcH.toFloat() / outHeight
-        for (y in 0 until outHeight) {
-            val srcY = min((y * scaleH).toInt(), srcH - 1)
-            val rowBase = srcY * srcW * RGB_CHANNELS
-            for (x in 0 until outWidth) {
-                val srcX = min((x * scaleW).toInt(), srcW - 1)
-                val src = rowBase + srcX * RGB_CHANNELS
-                val dst = y * outWidth + x
-                output[dst] = (rgb[src].toInt() and BYTE_MASK) / RGB_SCALE
-                output[planeSize + dst] = (rgb[src + greenOffset].toInt() and BYTE_MASK) / RGB_SCALE
-                output[bluePlane * planeSize + dst] =
-                    (rgb[src + blueOffset].toInt() and BYTE_MASK) / RGB_SCALE
+        // 1. Calcular escala y padding centrado
+        val scale = minOf(outWidth.toFloat() / srcW, outHeight.toFloat() / srcH)
+        val newW = (srcW * scale).toInt()
+        val newH = (srcH * scale).toInt()
+        val padX = (outWidth - newW) / 2
+        val padY = (outHeight - newH) / 2
+
+        // 2. Exponer transformación (el postprocesado la necesita)
+        lastScale = scale
+        lastPadX = padX.toFloat()
+        lastPadY = padY.toFloat()
+
+        // 3. Rellenar con gris (114/255 ≈ 0.447, el valor estándar de YOLO)
+        java.util.Arrays.fill(output, PAD_VALUE)
+
+        // 4. Bilinear sample dentro de la región útil
+        for (y in 0 until newH) {
+            val srcYf = y / scale
+            val y0 = srcYf.toInt().coerceIn(0, srcH - 1)
+            val y1 = (y0 + 1).coerceAtMost(srcH - 1)
+            val wy = srcYf - y0
+
+            for (x in 0 until newW) {
+                val srcXf = x / scale
+                val x0 = srcXf.toInt().coerceIn(0, srcW - 1)
+                val x1 = (x0 + 1).coerceAtMost(srcW - 1)
+                val wx = srcXf - x0
+
+                val dst = (y + padY) * outWidth + (x + padX)
+
+                for (c in 0 until RGB_CHANNELS) {
+                    val p00 = rgb[(y0 * srcW + x0) * RGB_CHANNELS + c].toInt() and BYTE_MASK
+                    val p01 = rgb[(y0 * srcW + x1) * RGB_CHANNELS + c].toInt() and BYTE_MASK
+                    val p10 = rgb[(y1 * srcW + x0) * RGB_CHANNELS + c].toInt() and BYTE_MASK
+                    val p11 = rgb[(y1 * srcW + x1) * RGB_CHANNELS + c].toInt() and BYTE_MASK
+                    val top = p00 + (p01 - p00) * wx
+                    val bot = p10 + (p11 - p10) * wx
+                    val v = (top + (bot - top) * wy) / RGB_SCALE
+                    // NCHW: canal c ocupa el plano c * planeSize
+                    output[c * planeSize + dst] = v
+                }
             }
         }
     }
 
     private companion object {
         const val RGB_CHANNELS = 3
+        const val PAD_VALUE = 114f / 255f
         const val BYTE_MASK = 0xFF
         const val RGB_SCALE = 255f
     }

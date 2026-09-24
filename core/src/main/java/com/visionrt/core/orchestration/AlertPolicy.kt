@@ -79,13 +79,13 @@ class AlertPolicy(
     }
 
     private fun fusionKey(detection: Detection): String =
-        "${detection.label.lowercase()}@${detection.sector}"
+        detection.label.lowercase()
 
     private fun isStable(track: Track, detection: Detection, motionEvidence: Boolean): Boolean {
         // Near + high confidence: alert on the first frame so the user is not
         // warned only after the object is already "on top of" the camera.
         if (detection.proximity == Proximity.NEAR &&
-            detection.confidence >= config.highConfidenceThreshold
+            detection.confidence >= config.confidenceThreshold
         ) {
             return true
         }

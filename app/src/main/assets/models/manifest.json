@@ -87,7 +87,7 @@
     "hair drier",
     "toothbrush"
   ],
-  "confidence_threshold": 0.6,
+  "confidence_threshold": 0.35,
   "nms_iou_threshold": 0.45,
   "max_detections": 10,
   "checksum": "sha256:793eac3c43f244f96ed66c32b189f874d5914ea85b35fc11172e0004e9ec5ada",

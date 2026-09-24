@@ -8,7 +8,7 @@ data class AlertPolicyConfig(
     val confidenceThreshold: Float = 0.60f,
     val highConfidenceThreshold: Float = 0.80f,
     val minStableFrames: Int = 2,
-    val cooldownMs: Long = 5_000L,
+    val cooldownMs: Long = 4_000L,
     /** Below this confidence (but >= [confidenceThreshold]) use cautious wording. */
     val cautionConfidenceThreshold: Float = 0.70f,
     /**
@@ -16,7 +16,7 @@ data class AlertPolicyConfig(
      * after a couple of phrases (FR-006.5 / UX-004). User-tuned to 1.5s on
      * SM-A226BR after field feedback (2s still felt laggy).
      */
-    val detailedCooldownMs: Long = 1_500L,
+    val detailedCooldownMs: Long = 2_000L,
 ) {
     init {
         require(confidenceThreshold in 0f..1f)

@@ -14,6 +14,10 @@ class FakeFeedbackPort : FeedbackPort {
     private val _emitted = mutableListOf<Alert>()
     val emitted: List<Alert> get() = _emitted
 
+    private val inFlight = AtomicReference<AlertPriority?>(null)
+    override fun currentPriority(): AlertPriority? = inFlight.get()
+    override fun isActive(): Boolean = inFlight.get() != null
+
     private val _interrupts = mutableListOf<AlertPriority>()
     val interrupts: List<AlertPriority> get() = _interrupts
 

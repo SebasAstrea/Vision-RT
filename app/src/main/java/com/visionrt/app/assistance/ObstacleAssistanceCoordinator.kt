@@ -43,7 +43,7 @@ import kotlinx.coroutines.withContext
  * (OR-003).
  */
 @Singleton
-@Suppress("LongParameterList") // app-level wiring (ARCHITECTURE §7.1.3)
+@Suppress("LongParameterList")
 class ObstacleAssistanceCoordinator @Inject constructor(
     private val modeController: ModeController,
     private val detector: ObjectDetector,

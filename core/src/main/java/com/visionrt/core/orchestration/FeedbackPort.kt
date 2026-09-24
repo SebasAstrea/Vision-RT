@@ -17,4 +17,14 @@ interface FeedbackPort {
     suspend fun interruptCurrent(priority: AlertPriority)
 
     suspend fun stopAll()
+
+    /**
+     * Priority of the alert currently being spoken, or null when idle.
+     * Orchestration uses this to avoid interrupting an utterance with another
+     * of equal or lower priority (which would cut phrases mid-word).
+     */
+    fun currentPriority(): AlertPriority?
+
+    /** True while any feedback (speech or haptics) is in flight. */
+    fun isActive(): Boolean
 }
