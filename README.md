@@ -4,7 +4,7 @@ Aplicacion Android de asistencia visual para personas con discapacidad
 visual. Detecta obstaculos y personas en tiempo real usando la camara
 del dispositivo, y emite alertas por voz y vibracion.
 
-Todo el procesamiento se ejecuta localmente en el dispositivo. No se
+Todo el procesamiento se ejecuta localmente en el dispositivo con modelos de imagen a clasificación. No se
 envia informacion a servidores externos.
 
 ## Estado del proyecto
@@ -48,6 +48,13 @@ Para el detalle completo, consulta `docs/ARCHITECTURE.md`.
 - ML Kit para OCR.
 - DataStore Preferences para ajustes.
 - YOLOv11n @ 640 int8 como modelo de deteccion.
+
+## Retos encontrados durante el desarrollo
+
+| Retos | Solución propuesta |
+| Gestión de batería y recursos | Se implementaron 3 modos de consumo y sistema automático que reduce la potencia del modelo a un mínimo funcional |
+| Detección de falsos positivos | Detectaba objetos que no estaban allí, se decidió implementar un modelo más pesado de YOLO que tuviera una precisión dentro del umbral de >60% |
+| Accesibilidad | Se implementó un sistema OCR tipo narrador que lee los botones en voz alta, la UI es simple y con botones grandes también asistidos por narrador. El hardware mínimo de funcionalidad es un móvil con 3GB de ram libres |
 
 ## Requisitos de compilacion
 
