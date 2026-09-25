@@ -52,8 +52,9 @@ Para el detalle completo, consulta `docs/ARCHITECTURE.md`.
 ## Retos encontrados durante el desarrollo
 
 | Retos | Solución propuesta |
+|-------|--------------------|
 | Gestión de batería y recursos | Se implementaron 3 modos de consumo y sistema automático que reduce la potencia del modelo a un mínimo funcional |
-| Detección de falsos positivos | Detectaba objetos que no estaban allí, se decidió implementar un modelo más pesado de YOLO que tuviera una precisión dentro del umbral de >60% |
+| Detección de falsos positivos | Se decidió implementar un modelo más pesado de YOLO que tuviera una precisión dentro del umbral de >60% |
 | Accesibilidad | Se implementó un sistema OCR tipo narrador que lee los botones en voz alta, la UI es simple y con botones grandes también asistidos por narrador. El hardware mínimo de funcionalidad es un móvil con 3GB de ram libres |
 
 ## Requisitos de compilacion
