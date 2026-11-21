@@ -16,9 +16,6 @@ class TensorPreprocessor(
     private val outHeight: Int,
 ) {
     private val planeSize = outWidth * outHeight
-    private val greenOffset = 1
-    private val blueOffset = 2
-    private val bluePlane = 2
     @Volatile var lastScale: Float = 1f
     private set
     @Volatile var lastPadX: Float = 0f

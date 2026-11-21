@@ -10,6 +10,7 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.visionrt.core.common.SafeLogger
 import com.visionrt.perception.PerceptionFrame
 import com.visionrt.perception.framegate.FrameGate
 import java.util.concurrent.ExecutorService
@@ -18,9 +19,13 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * CameraX analysis pipeline (ARCHITECTURE §6.3, §10.1): 640×480 latest-only,
- * YUV_420_888 → RGB888 into a reused buffer, submit to [FrameGate], close the
- * ImageProxy promptly. Never allocates a Bitmap per frame.
+ * CameraX analysis pipeline (ARCHITECTURE §6.3, §10.1): latest-only analysis,
+ * YUV_420_888 → upright RGB888 into a reused buffer, submit to [FrameGate],
+ * close the ImageProxy promptly. Never allocates a Bitmap per frame.
+ *
+ * Frames are rotated with `ImageInfo.rotationDegrees` and scaled to
+ * [frameBudget]; a sensor frame larger than 640x480 is downscaled, never
+ * cropped, so the full field of view reaches the detector.
  */
 class CameraFrameSource(
     private val context: Context,
@@ -31,6 +36,12 @@ class CameraFrameSource(
     private var provider: ProcessCameraProvider? = null
     private var executor: ExecutorService? = null
     private var rgbBuffer: ByteArray? = null
+    private var lastGeometry: String? = null
+
+    private val frameBudget = YuvFrameConverter.Budget(
+        maxLongSide = maxOf(analysisWidth, analysisHeight),
+        maxPixels = analysisWidth * analysisHeight,
+    )
 
     @Volatile
     private var bound = false
@@ -102,19 +113,44 @@ class CameraFrameSource(
 
     private fun analyze(image: ImageProxy) {
         try {
-            val buffer = rgbBuffer
-            if (buffer != null && yuv420ToRgb888(image, buffer, analysisWidth, analysisHeight)) {
-                frameGate.submit(
-                    PerceptionFrame(
-                        timestampMs = image.imageInfo.timestamp / NANOS_PER_MILLIS,
-                        width = analysisWidth,
-                        height = analysisHeight,
-                        rgb888 = buffer.copyOf(),
-                    ),
-                )
-            }
+            val buffer = rgbBuffer ?: return
+            val planes = image.planes
+            val size = YuvFrameConverter.convert(
+                source = YuvFrameConverter.Source(
+                    y = planes[0].toConverterPlane(),
+                    u = planes[1].toConverterPlane(),
+                    v = planes[2].toConverterPlane(),
+                    width = image.width,
+                    height = image.height,
+                    rotationDegrees = image.imageInfo.rotationDegrees,
+                ),
+                budget = frameBudget,
+                out = buffer,
+            ) ?: return
+
+            logGeometryOnce(image, size)
+            frameGate.submit(
+                PerceptionFrame(
+                    timestampMs = image.imageInfo.timestamp / NANOS_PER_MILLIS,
+                    width = size.width,
+                    height = size.height,
+                    rgb888 = buffer.copyOf(size.pixelCount * BYTES_PER_PIXEL),
+                ),
+            )
         } finally {
             image.close()
+        }
+    }
+
+    private fun ImageProxy.PlaneProxy.toConverterPlane(): YuvFrameConverter.Plane =
+        YuvFrameConverter.Plane(buffer = buffer, rowStride = rowStride, pixelStride = pixelStride)
+
+    private fun logGeometryOnce(image: ImageProxy, size: YuvFrameConverter.Size) {
+        val geometry = "${image.width}x${image.height}@${image.imageInfo.rotationDegrees}" +
+            "->${size.width}x${size.height}"
+        if (geometry != lastGeometry) {
+            lastGeometry = geometry
+            SafeLogger.i(TAG, "frame geometry $geometry")
         }
     }
 
@@ -129,72 +165,8 @@ class CameraFrameSource(
     companion object {
         const val ANALYSIS_WIDTH = 640
         const val ANALYSIS_HEIGHT = 480
+        private const val TAG = "CameraFrameSource"
         private const val BYTES_PER_PIXEL = 3
         private const val NANOS_PER_MILLIS = 1_000_000L
-        private const val UV_HALF = 2
-        private const val COLOR_OFFSET = 128
-        private const val MAX_8BIT = 255
-        private const val Y_GAIN = 1f
-        private const val R_V = 1.402f
-        private const val G_U = -0.344136f
-        private const val G_V = -0.714136f
-        private const val B_U = 1.772f
-
-        /**
-         * YUV_420_888 → packed RGB888 (BT.601 full-range style).
-         * Writes exactly [width]*[height]*3 bytes into [out].
-         */
-        fun yuv420ToRgb888(image: ImageProxy, out: ByteArray, width: Int, height: Int): Boolean {
-            val planesOk = image.width >= width && image.height >= height &&
-                out.size >= width * height * BYTES_PER_PIXEL
-            if (planesOk) {
-                convertPlanes(image, out, width, height)
-            }
-            return planesOk
-        }
-
-        private fun convertPlanes(
-            image: ImageProxy,
-            out: ByteArray,
-            width: Int,
-            height: Int,
-        ) {
-            val planeY = image.planes[0]
-            val planeU = image.planes[1]
-            val planeV = image.planes[2]
-            val yBuf = planeY.buffer
-            val uBuf = planeU.buffer
-            val vBuf = planeV.buffer
-            val yRowStride = planeY.rowStride
-            val yPixelStride = planeY.pixelStride
-            val uRowStride = planeU.rowStride
-            val uPixelStride = planeU.pixelStride
-            val vRowStride = planeV.rowStride
-            val vPixelStride = planeV.pixelStride
-
-            var outIndex = 0
-            for (row in 0 until height) {
-                val yRow = row * yRowStride
-                val uvRow = (row / UV_HALF) * uRowStride
-                val vRowBase = (row / UV_HALF) * vRowStride
-                for (col in 0 until width) {
-                    val y = yBuf.get(yRow + col * yPixelStride).toInt() and BYTE_MASK
-                    val uIndex = uvRow + (col / UV_HALF) * uPixelStride
-                    val u = (uBuf.get(uIndex).toInt() and BYTE_MASK) - COLOR_OFFSET
-                    val vIndex = vRowBase + (col / UV_HALF) * vPixelStride
-                    val v = (vBuf.get(vIndex).toInt() and BYTE_MASK) - COLOR_OFFSET
-
-                    val r = (Y_GAIN * y + R_V * v).toInt().coerceIn(0, MAX_8BIT)
-                    val g = (Y_GAIN * y + G_U * u + G_V * v).toInt().coerceIn(0, MAX_8BIT)
-                    val b = (Y_GAIN * y + B_U * u).toInt().coerceIn(0, MAX_8BIT)
-
-                    out[outIndex++] = r.toByte()
-                    out[outIndex++] = g.toByte()
-                    out[outIndex++] = b.toByte()
-                }
-            }
-        }
-
-        private const val BYTE_MASK = 0xFF
     }
 }

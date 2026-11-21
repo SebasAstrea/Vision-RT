@@ -737,6 +737,10 @@ FeedbackDispatcher
 4. Keep only one active inference request for continuous detection.
 5. Avoid allocating new tensors or Bitmaps per frame.
 6. Reuse ByteBuffer or tensor buffers where possible.
+7. Rotate every frame upright with `ImageInfo.rotationDegrees` and scale the
+   full sensor frame into the analysis budget. Never crop a top-left region
+   when the camera delivers more than 640 x 480: cropping silently removes
+   part of the field of view and hides obstacles.
 
 ### 10.3 Preprocessing strategy
 
@@ -745,6 +749,10 @@ Preferred path:
 - Use ImageProxy from CameraX.
 - Convert YUV to model input only when needed.
 - Use optimized conversion.
+- Apply `ImageInfo.rotationDegrees` during YUV -> RGB in a single pass (no
+  extra copy), so portrait use does not feed a sideways scene to the detector.
+- Preserve aspect ratio when downscaling; the detector letterboxes the frame,
+  so cropping instead of scaling loses field of view.
 - If Kotlin conversion exceeds budget, move to C++ with libyuv.
 
 Preprocessing budget:
